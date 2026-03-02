@@ -116,6 +116,15 @@ export const T = {
     typeCyberattack: "Cyberattack",
     typeNaval: "Naval Incident",
     typeOther: "Incident",
+    // Geofences
+    geofences: "Geofences",
+    drawZone: "Draw Zone",
+    drawingZone: "Click on map to add points. Double-click to finish.",
+    noZonesYet: "No zones defined yet",
+    // Predictive toast
+    aiPrediction: "AI Prediction",
+    predictionConfidence: "confidence",
+    viewRelatedEvent: "View Related Event",
   },
   ar: {
     appSubtitle: "استخبارات النزاعات العالمية",
