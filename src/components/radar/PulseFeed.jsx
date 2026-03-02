@@ -1,16 +1,17 @@
 import { useState } from "react";
 import { Search, Radio, RefreshCw } from "lucide-react";
 import EventCard from "./EventCard";
-
-const FILTERS = [
-  { label: "ALL", value: "all" },
-  { label: "HIGH", value: "HIGH" },
-  { label: "MED", value: "MEDIUM" },
-  { label: "LOW", value: "LOW" },
-  { label: "ESC", value: "escalation" },
-];
+import { useLang } from "../LanguageContext";
 
 export default function PulseFeed({ events, onSelectEvent, selectedEvent, onRefresh }) {
+  const { t } = useLang();
+  const FILTERS = [
+    { label: t.filterAll, value: "all" },
+    { label: t.filterHigh, value: "HIGH" },
+    { label: t.filterMed, value: "MEDIUM" },
+    { label: t.filterLow, value: "LOW" },
+    { label: t.filterEsc, value: "escalation" },
+  ];
   const [search, setSearch] = useState("");
   const [activeFilter, setActiveFilter] = useState("all");
   const [refreshing, setRefreshing] = useState(false);
