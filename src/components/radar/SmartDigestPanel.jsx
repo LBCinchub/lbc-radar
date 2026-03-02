@@ -63,7 +63,7 @@ export default function SmartDigestPanel({ events }) {
         onClick={() => setExpanded((v) => !v)}
       >
         <Brain className="w-3.5 h-3.5 text-blue-400" />
-        <span className="text-[11px] font-bold tracking-widest text-slate-300 uppercase">Smart Digest</span>
+        <span className="text-[11px] font-bold tracking-widest text-slate-300 uppercase">{t.smartDigest}</span>
         <div className="ml-auto flex items-center gap-2">
           {!loading && (
             <button
@@ -71,7 +71,7 @@ export default function SmartDigestPanel({ events }) {
               className="text-[10px] text-blue-400 hover:text-blue-300 flex items-center gap-1 transition-colors"
             >
               <RefreshCw className="w-2.5 h-2.5" />
-              {digest ? "Refresh" : "Generate"}
+              {digest ? t.refresh : t.generate}
             </button>
           )}
           {expanded ? <ChevronUp className="w-3 h-3 text-slate-500" /> : <ChevronDown className="w-3 h-3 text-slate-500" />}
@@ -84,9 +84,9 @@ export default function SmartDigestPanel({ events }) {
             <div className="flex flex-col gap-1.5 py-2">
               <div className="flex items-center gap-2 text-[11px] text-slate-400">
                 <Loader2 className="w-3 h-3 animate-spin text-blue-400" />
-                Analyzing {events.length} conflict events...
+                {t.analyzing(events.length)}
               </div>
-              <div className="text-[10px] text-slate-600">Generating impact assessments & recommendations...</div>
+              <div className="text-[10px] text-slate-600">{t.generatingAssessments}</div>
             </div>
           ) : digest ? (
             <div className="space-y-3">
@@ -94,7 +94,7 @@ export default function SmartDigestPanel({ events }) {
               {digest.threat_level && (
                 <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded border text-[10px] font-bold tracking-widest ${THREAT_COLORS[digest.threat_level] || THREAT_COLORS.MODERATE}`}>
                   <TrendingUp className="w-2.5 h-2.5" />
-                  THREAT: {digest.threat_level}
+                  {t.threat} {digest.threat_level}
                 </div>
               )}
 
@@ -124,7 +124,7 @@ export default function SmartDigestPanel({ events }) {
                 <div className="mt-2">
                   <div className="flex items-center gap-1.5 mb-2">
                     <ShieldAlert className="w-3 h-3 text-red-400" />
-                    <span className="text-[10px] font-bold tracking-widest text-slate-400 uppercase">Event Briefings</span>
+                    <span className="text-[10px] font-bold tracking-widest text-slate-400 uppercase">{t.eventBriefings}</span>
                   </div>
                   <div className="space-y-2">
                     {digest.event_summaries.map((es, i) => (
@@ -150,7 +150,7 @@ export default function SmartDigestPanel({ events }) {
             </div>
           ) : (
             <p className="text-[11px] text-slate-600 py-1">
-              Click Generate to get an AI-powered intelligence digest with impact assessments and recommended actions.
+              {t.clickGenerate}
             </p>
           )}
         </div>
