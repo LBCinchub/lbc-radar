@@ -8,6 +8,7 @@ import SmartDigestPanel from "../components/radar/SmartDigestPanel";
 import TrendAnalysisPanel from "../components/radar/TrendAnalysisPanel";
 import NewsFeedPanel from "../components/radar/NewsFeedPanel";
 import MarketTickerPanel from "../components/radar/MarketTickerPanel";
+import CustomWatchlistPanel from "../components/radar/CustomWatchlistPanel";
 import CorrelationPanel from "../components/radar/CorrelationPanel";
 import AddEventModal from "../components/radar/AddEventModal";
 import { AlertStack } from "../components/radar/AlertNotificationStack";
@@ -122,6 +123,7 @@ export default function Home() {
           <TrendAnalysisPanel events={events} />
           <NewsFeedPanel />
           <MarketTickerPanel />
+          <CustomWatchlistPanel />
           <div className="flex-1 overflow-hidden">
             <PulseFeed
               events={events}
