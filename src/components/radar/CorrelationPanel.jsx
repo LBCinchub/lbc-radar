@@ -111,7 +111,9 @@ Return JSON only. No markdown.`,
       },
     });
 
-    setGroups(result?.groups || []);
+    const newGroups = result?.groups || [];
+    setGroups(newGroups);
+    onGroupsChange?.(newGroups);
     setLastRun(new Date());
     setLoading(false);
     setExpanded(true);
