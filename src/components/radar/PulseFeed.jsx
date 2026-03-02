@@ -88,7 +88,7 @@ export default function PulseFeed({ events, onSelectEvent, selectedEvent, onRefr
         {filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-32 text-slate-600 text-xs">
             <Radio className="w-5 h-5 mb-2 opacity-30" />
-            No events found
+            {t.noEventsFound}
           </div>
         ) : (
           filtered.map((event) => (
