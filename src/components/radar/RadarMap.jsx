@@ -22,19 +22,8 @@ export default function RadarMap({ events, selectedEvent, onSelectEvent }) {
 
   return (
     <div className="relative w-full h-full">
-      {/* Scanline overlay */}
-      <div className="absolute inset-0 pointer-events-none z-10">
-        <div
-          className="absolute w-full h-[2px] opacity-10"
-          style={{
-            background: "linear-gradient(90deg, transparent, rgba(220,38,38,0.6), transparent)",
-            animation: "scanline 4s linear infinite",
-          }}
-        />
-      </div>
-
       {/* Grid overlay */}
-      <div className="absolute inset-0 radar-grid pointer-events-none z-10" />
+      <div className="absolute inset-0 radar-grid pointer-events-none z-[400]" />
 
       <MapContainer
         center={[25, 30]}
