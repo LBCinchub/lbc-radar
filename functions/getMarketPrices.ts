@@ -10,9 +10,16 @@ const SYMBOL_MAP = {
   "NVDA": "NVDA",
   "TSLA": "TSLA",
   "AMZN": "AMZN",
-  "XAU": "XAUUSD", // Gold
-  "XAG": "XAGUSD", // Silver
-  "OIL": "USOIL",  // WTI Oil
+  "XAU": "XAUUSD",
+  "XAG": "XAGUSD",
+  "OIL": "USOIL",
+};
+
+// Cryptocurrency IDs for CoinGecko
+const CRYPTO_MAP = {
+  "BTC": "bitcoin",
+  "ETH": "ethereum",
+  "XRP": "ripple",
 };
 
 Deno.serve(async (req) => {
@@ -25,11 +32,14 @@ Deno.serve(async (req) => {
     }
 
     const { symbols } = await req.json();
-    const symbolsToFetch = symbols || Object.keys(SYMBOL_MAP);
+    const symbolsToFetch = symbols || Object.keys(SYMBOL_MAP).concat(Object.keys(CRYPTO_MAP));
 
     const prices = [];
 
+    // Fetch stocks and commodities from Finnhub
     for (const symbol of symbolsToFetch) {
+      if (CRYPTO_MAP[symbol]) continue; // Skip cryptos, handle separately
+
       const finnhubSymbol = SYMBOL_MAP[symbol] || symbol;
       
       try {
@@ -37,10 +47,7 @@ Deno.serve(async (req) => {
           `${FINNHUB_BASE_URL}/quote?symbol=${finnhubSymbol}&token=${FINNHUB_API_KEY}`
         );
         
-        if (!response.ok) {
-          console.error(`Failed to fetch ${symbol}:`, response.status);
-          continue;
-        }
+        if (!response.ok) continue;
 
         const data = await response.json();
 
@@ -49,6 +56,7 @@ Deno.serve(async (req) => {
             symbol: symbol,
             price: data.c,
             change_pct: ((data.c - data.pc) / data.pc * 100).toFixed(2),
+            type: 'stock',
             timestamp: new Date().toISOString()
           });
         }
@@ -57,7 +65,37 @@ Deno.serve(async (req) => {
       }
     }
 
-    return Response.json({ prices });
+    // Fetch cryptocurrencies from CoinGecko (free API)
+    const cryptoSymbols = symbolsToFetch.filter(s => CRYPTO_MAP[s]);
+    if (cryptoSymbols.length > 0) {
+      try {
+        const ids = cryptoSymbols.map(s => CRYPTO_MAP[s]).join(',');
+        const response = await fetch(
+          `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`
+        );
+
+        if (response.ok) {
+          const cryptoData = await response.json();
+          
+          for (const symbol of cryptoSymbols) {
+            const cryptoId = CRYPTO_MAP[symbol];
+            if (cryptoData[cryptoId]) {
+              prices.push({
+                symbol: symbol,
+                price: cryptoData[cryptoId].usd,
+                change_pct: (cryptoData[cryptoId].usd_24h_change || 0).toFixed(2),
+                type: 'crypto',
+                timestamp: new Date().toISOString()
+              });
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching cryptocurrencies:', error.message);
+      }
+    }
+
+    return Response.json({ prices, timestamp: new Date().toISOString() });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }
