@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import TopBar from "../components/radar/TopBar";
 import PulseFeed from "../components/radar/PulseFeed";
@@ -13,7 +13,6 @@ import AddEventModal from "../components/radar/AddEventModal";
 import { AlertStack } from "../components/radar/AlertNotificationStack";
 import PredictiveAlertEngine from "../components/radar/PredictiveAlertEngine";
 import PredictiveAlertToast from "../components/radar/PredictiveAlertToast";
-import GeofenceManager from "../components/radar/GeofenceManager";
 import GeofenceAlertToast from "../components/radar/GeofenceAlertToast";
 import { useGeofence } from "../components/radar/useGeofence";
 import { useLang } from "../components/LanguageContext";
@@ -28,11 +27,8 @@ export default function Home() {
   const [predictions, setPredictions] = useState([]);
   const [correlationGroups, setCorrelationGroups] = useState([]);
   const [geofenceAlerts, setGeofenceAlerts] = useState([]);
-  const {
-    zones, isDrawing, drawPoints,
-    startDraw, cancelDraw, addDrawPoint, finishDraw,
-    deleteZone, toggleZone, checkEventAgainstZones,
-  } = useGeofence();
+
+  const geofence = useGeofence();
 
   const addPrediction = useCallback((pred) => {
     const id = Date.now() + Math.random();
@@ -71,12 +67,6 @@ export default function Home() {
         // Trigger critical alert for HIGH severity new events
         if (event.data?.severity === "HIGH") {
           addAlert(event.data);
-        }
-        // Check geofence zones
-        const geoHit = checkEventAgainstZones(event.data);
-        if (geoHit) {
-          const id = Date.now() + Math.random();
-          setGeofenceAlerts((prev) => [...prev.slice(-3), { id, event: geoHit.event, zoneName: geoHit.zone.name }]);
         }
       } else if (event.type === "update") {
         setEvents((prev) => prev.map((e) => (e.id === event.id ? event.data : e)));
@@ -135,22 +125,8 @@ export default function Home() {
             <RadarMap
               events={events}
               selectedEvent={selectedEvent}
-              onSelectEvent={isDrawing ? undefined : setSelectedEvent}
+              onSelectEvent={setSelectedEvent}
               correlationGroups={correlationGroups}
-              zones={zones}
-              isDrawing={isDrawing}
-              drawPoints={drawPoints}
-              onAddDrawPoint={addDrawPoint}
-              onFinishDraw={finishDraw}
-            />
-            <GeofenceManager
-              zones={zones}
-              onAdd={() => {}}
-              onDelete={deleteZone}
-              onToggle={toggleZone}
-              isDrawing={isDrawing}
-              onStartDraw={startDraw}
-              onCancelDraw={cancelDraw}
             />
           )}
         </main>
