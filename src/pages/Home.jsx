@@ -13,6 +13,16 @@ export default function Home() {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [alerts, setAlerts] = useState([]);
+
+  const addAlert = useCallback((event) => {
+    const id = Date.now();
+    setAlerts((prev) => [...prev.slice(-2), { id, event }]);
+  }, []);
+
+  const removeAlert = useCallback((id) => {
+    setAlerts((prev) => prev.filter((a) => a.id !== id));
+  }, []);
 
   const loadEvents = async () => {
     const data = await base44.entities.ConflictEvent.list("-created_date", 100);
@@ -27,6 +37,10 @@ export default function Home() {
     const unsubscribe = base44.entities.ConflictEvent.subscribe((event) => {
       if (event.type === "create") {
         setEvents((prev) => [event.data, ...prev]);
+        // Trigger critical alert for HIGH severity new events
+        if (event.data?.severity === "HIGH") {
+          addAlert(event.data);
+        }
       } else if (event.type === "update") {
         setEvents((prev) => prev.map((e) => (e.id === event.id ? event.data : e)));
       } else if (event.type === "delete") {
