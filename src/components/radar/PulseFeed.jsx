@@ -6,13 +6,6 @@ const FILTERS = [
   { label: "ALL", value: "all" },
   { label: "HIGH", value: "HIGH" },
   { label: "MED", value: "MEDIUM" },
-  { label: "ESC", value: "escalation" },
-];
-
-const FILTERS = [
-  { label: "ALL", value: "all" },
-  { label: "HIGH", value: "HIGH" },
-  { label: "MED", value: "MEDIUM" },
   { label: "LOW", value: "LOW" },
   { label: "ESC", value: "escalation" },
 ];
