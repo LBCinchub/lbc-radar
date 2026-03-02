@@ -209,6 +209,17 @@ export default function Home() {
 
       {/* Prediction engine (invisible) */}
       <PredictiveAlertEngine events={events} onPrediction={addPrediction} />
+
+      {/* Geofence alert toasts */}
+      <div style={{ position: "fixed", bottom: 80, right: 16, zIndex: 9999, display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-end" }}>
+        {geofenceAlerts.map(({ id, event, zoneName }) => (
+          <GeofenceAlertToast
+            key={id}
+            alert={{ event, zoneName }}
+            onClose={() => setGeofenceAlerts((prev) => prev.filter((a) => a.id !== id))}
+          />
+        ))}
+      </div>
     </div>
   );
 }
