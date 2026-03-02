@@ -98,7 +98,7 @@ function NewsCard({ post, t }) {
         <div style={{ background: "rgba(255,255,255,0.02)", borderLeft: `2px solid ${cfg.color}55`, padding: "4px 8px", marginBottom: 4 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 3, marginBottom: 2 }}>
             <ShieldCheck style={{ width: 8, height: 8, color: cfg.color }} />
-            <span style={{ fontSize: 8, fontWeight: 700, color: cfg.color, textTransform: "uppercase", letterSpacing: "0.08em" }}>AI Fact-Check</span>
+            <span style={{ fontSize: 8, fontWeight: 700, color: cfg.color, textTransform: "uppercase", letterSpacing: "0.08em" }}>{t.aiFact}</span>
           </div>
           <p style={{ fontSize: 9, color: "#94a3b8", lineHeight: 1.4 }}>{post.verification_summary}</p>
         </div>
@@ -107,16 +107,16 @@ function NewsCard({ post, t }) {
       <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 3 }}>
         {post.content?.length > 100 && (
           <button onClick={() => setExpanded((v) => !v)} style={{ fontSize: 9, color: "#3b82f6", background: "none", border: "none", cursor: "pointer", padding: 0 }}>
-            {expanded ? "Show less" : "Read more"}
+            {expanded ? t.showLess : t.readMore}
           </button>
         )}
         {post.source_url && (
           <a href={post.source_url} target="_blank" rel="noreferrer" style={{ fontSize: 9, color: "#475569", display: "flex", alignItems: "center", gap: 2, marginLeft: "auto" }}>
-            <Link style={{ width: 8, height: 8 }} /> Source
+            <Link style={{ width: 8, height: 8 }} /> {t.source}
           </a>
         )}
         <span style={{ fontSize: 8, color: "#334155", marginLeft: post.source_url ? 0 : "auto" }}>
-          {post.author_name || "Anonymous"} · {post.created_date ? new Date(post.created_date).toLocaleDateString() : ""}
+          {post.author_name || t.anonymous} · {post.created_date ? new Date(post.created_date).toLocaleDateString() : ""}
         </span>
       </div>
     </div>
