@@ -30,6 +30,7 @@ export default function Home() {
   const [geofenceAlerts, setGeofenceAlerts] = useState([]);
 
   const geofence = useGeofence();
+  const { isDrawing } = geofence;
 
   const addPrediction = useCallback((pred) => {
     const id = Date.now() + Math.random();
