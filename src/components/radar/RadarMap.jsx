@@ -25,14 +25,16 @@ const EVENT_TYPE_EMOJI = {
 
 const ALERT_TYPES = ["airstrike", "missile", "explosion"];
 
-function makeIcon(event, isSelected) {
+function makeIcon(event, isSelected, inZone) {
   const color = SEVERITY_COLORS[event.severity] || "#64748b";
   const isAlert = ALERT_TYPES.includes(event.event_type);
+  const zoneRing = inZone ? `<div style="position:absolute;inset:-5px;border-radius:50%;border:2px solid #a78bfa;animation:radarPing 1.5s ease-out infinite;"></div>` : "";
 
   if (isAlert) {
     const html = `<div style="position:relative;width:32px;height:32px;display:flex;align-items:center;justify-content:center;">
       <span style="font-size:18px;filter:drop-shadow(0 0 8px ${color});z-index:1;">${EVENT_TYPE_EMOJI[event.event_type] || "🚀"}</span>
       ${isSelected ? `<div style="position:absolute;inset:-4px;border-radius:50%;border:2px solid ${color};animation:radarPing 1.2s ease-out infinite;"></div>` : ""}
+      ${zoneRing}
     </div>`;
     return L.divIcon({ html, className: "", iconSize: [32, 32], iconAnchor: [16, 16] });
   }
@@ -40,9 +42,11 @@ function makeIcon(event, isSelected) {
   const size = event.severity === "HIGH" ? 12 : event.severity === "MEDIUM" ? 9 : 7;
   const pulse = isSelected
     ? `box-shadow:0 0 0 3px ${color}55,0 0 12px ${color};`
+    : inZone
+    ? `box-shadow:0 0 0 3px #a78bfa55,0 0 12px #a78bfa;`
     : `box-shadow:0 0 6px ${color}88;`;
-  const html = `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${color};${pulse}"></div>`;
-  return L.divIcon({ html, className: "", iconSize: [size, size], iconAnchor: [size / 2, size / 2] });
+  const html = `<div style="position:relative;width:${size}px;height:${size}px;border-radius:50%;background:${color};${pulse}">${inZone && !isSelected ? `<div style="position:absolute;inset:-6px;border-radius:50%;border:1.5px solid #a78bfa88;"></div>` : ""}</div>`;
+  return L.divIcon({ html, className: "", iconSize: [size + 12, size + 12], iconAnchor: [(size + 12) / 2, (size + 12) / 2] });
 }
 
 function makeTooltipContent(event) {
