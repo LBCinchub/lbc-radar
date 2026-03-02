@@ -67,8 +67,13 @@ function SubmitForm({ onSubmit, onCancel, t }) {
 
 function NewsCard({ post, t }) {
   const [expanded, setExpanded] = useState(false);
+  const [showTranslation, setShowTranslation] = useState(false);
   const cfg = STATUS_CONFIG[post.verification_status] || STATUS_CONFIG.pending;
   const Icon = cfg.icon;
+
+  const displayHeadline = showTranslation && post.headline_en ? post.headline_en : post.headline;
+  const displayContent = showTranslation && post.content_en ? post.content_en : post.content;
+  const hasTranslation = post.headline_en || post.content_en;
 
   return (
     <div style={{ background: "rgba(255,255,255,0.02)", border: `1px solid rgba(255,255,255,0.06)`, borderRadius: 6, padding: "8px 10px", marginBottom: 6 }}>
@@ -85,12 +90,49 @@ function NewsCard({ post, t }) {
         {post.region && <span style={{ fontSize: 8, color: "#475569", marginLeft: "auto" }}>📍 {post.region}</span>}
       </div>
 
+      {/* Translation toggle */}
+      {hasTranslation && (
+        <div style={{ marginBottom: 4, display: "flex", gap: 3 }}>
+          <button
+            onClick={() => setShowTranslation(false)}
+            style={{
+              fontSize: 8,
+              fontWeight: showTranslation ? 400 : 700,
+              color: showTranslation ? "#64748b" : "#3b82f6",
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              padding: 0,
+              textDecoration: showTranslation ? "none" : "underline"
+            }}
+          >
+            Original
+          </button>
+          <span style={{ fontSize: 8, color: "#334155" }}>•</span>
+          <button
+            onClick={() => setShowTranslation(true)}
+            style={{
+              fontSize: 8,
+              fontWeight: showTranslation ? 700 : 400,
+              color: showTranslation ? "#3b82f6" : "#64748b",
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              padding: 0,
+              textDecoration: showTranslation ? "underline" : "none"
+            }}
+          >
+            English
+          </button>
+        </div>
+      )}
+
       {/* Headline */}
-      <div style={{ fontSize: 11, fontWeight: 600, color: "#e2e8f0", lineHeight: 1.4, marginBottom: 4 }}>{post.headline}</div>
+      <div style={{ fontSize: 11, fontWeight: 600, color: "#e2e8f0", lineHeight: 1.4, marginBottom: 4 }}>{displayHeadline}</div>
 
       {/* Content preview */}
       <p style={{ fontSize: 10, color: "#64748b", lineHeight: 1.5, marginBottom: 4 }}>
-        {expanded ? post.content : post.content?.slice(0, 100) + (post.content?.length > 100 ? "…" : "")}
+        {expanded ? displayContent : displayContent?.slice(0, 100) + (displayContent?.length > 100 ? "…" : "")}
       </p>
 
       {/* AI verification summary */}
