@@ -14,6 +14,7 @@ import { AlertStack } from "../components/radar/AlertNotificationStack";
 import PredictiveAlertEngine from "../components/radar/PredictiveAlertEngine";
 import PredictiveAlertToast from "../components/radar/PredictiveAlertToast";
 import GeofenceAlertToast from "../components/radar/GeofenceAlertToast";
+import GeofenceManager from "../components/radar/GeofenceManager";
 import { useGeofence } from "../components/radar/useGeofence";
 import { useLang } from "../components/LanguageContext";
 
