@@ -54,7 +54,10 @@ export default function Home() {
       }
     });
 
-    return unsubscribe;
+    return () => {
+      clearInterval(interval);
+      unsubscribe();
+    };
   }, []);
 
   const handleSaveEvent = async (formData) => {
