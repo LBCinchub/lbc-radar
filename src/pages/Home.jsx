@@ -13,6 +13,9 @@ import AddEventModal from "../components/radar/AddEventModal";
 import { AlertStack } from "../components/radar/AlertNotificationStack";
 import PredictiveAlertEngine from "../components/radar/PredictiveAlertEngine";
 import PredictiveAlertToast from "../components/radar/PredictiveAlertToast";
+import GeofenceManager from "../components/radar/GeofenceManager";
+import GeofenceAlertToast from "../components/radar/GeofenceAlertToast";
+import { useGeofence } from "../components/radar/useGeofence";
 import { useLang } from "../components/LanguageContext";
 
 export default function Home() {
