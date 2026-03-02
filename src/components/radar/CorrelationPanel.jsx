@@ -63,7 +63,7 @@ function CorrelationGroup({ group, index, onSelectEvent }) {
   );
 }
 
-export default function CorrelationPanel({ events, onSelectEventById }) {
+export default function CorrelationPanel({ events, onSelectEventById, onGroupsChange }) {
   const [expanded, setExpanded] = useState(false);
   const [groups, setGroups] = useState([]);
   const [loading, setLoading] = useState(false);
