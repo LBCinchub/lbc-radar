@@ -90,6 +90,17 @@ export default function Home() {
     await base44.entities.ConflictEvent.create(formData);
   };
 
+  // Compute which events fall inside active geofence zones
+  const geofencedEventIds = useMemo(() => {
+    const ids = new Set();
+    for (const zone of geofence.zones) {
+      if (!zone.active) continue;
+      const hits = geofence.checkAllEventsAgainstZone(events, zone);
+      hits.forEach((e) => ids.add(e.id));
+    }
+    return ids;
+  }, [events, geofence.zones]);
+
   return (
     <div className="flex flex-col h-screen bg-[#080b12] overflow-hidden">
       <TopBar eventCount={events.length} onAddEvent={() => setShowAddModal(true)} />
