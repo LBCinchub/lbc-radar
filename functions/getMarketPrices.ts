@@ -55,7 +55,7 @@ Deno.serve(async (req) => {
           prices.push({
             symbol: symbol,
             price: data.c,
-            change_pct: ((data.c - data.pc) / data.pc * 100).toFixed(2),
+            change_pct: (data.c - data.pc) / data.pc * 100,
             type: 'stock',
             timestamp: new Date().toISOString()
           });
@@ -83,7 +83,7 @@ Deno.serve(async (req) => {
               prices.push({
                 symbol: symbol,
                 price: cryptoData[cryptoId].usd,
-                change_pct: (cryptoData[cryptoId].usd_24h_change || 0).toFixed(2),
+                change_pct: cryptoData[cryptoId].usd_24h_change || 0,
                 type: 'crypto',
                 timestamp: new Date().toISOString()
               });

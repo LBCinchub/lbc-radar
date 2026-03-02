@@ -93,7 +93,7 @@ export default function MarketTickerPanel() {
             </span>
             <div style={{ display: "flex", alignItems: "center", gap: 2, color: up ? "#10b981" : "#ef4444" }}>
               {up ? <TrendingUp style={{ width: 9, height: 9 }} /> : <TrendingDown style={{ width: 9, height: 9 }} />}
-              <span style={{ fontSize: 9, fontWeight: 600 }}>{up ? "+" : ""}{data.change_pct?.toFixed(2)}%</span>
+              <span style={{ fontSize: 9, fontWeight: 600 }}>{up ? "+" : ""}{parseFloat(data.change_pct).toFixed(2)}%</span>
             </div>
           </div>
         ) : (

@@ -63,7 +63,7 @@ export default function CustomWatchlistPanel() {
             </span>
             <div className="flex items-center gap-1" style={{ color: up ? "#10b981" : "#ef4444" }}>
               {up ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-              <span className="text-[9px] font-semibold">{up ? "+" : ""}{data.change_pct}%</span>
+              <span className="text-[9px] font-semibold">{up ? "+" : ""}{parseFloat(data.change_pct).toFixed(2)}%</span>
             </div>
           </div>
         ) : (
