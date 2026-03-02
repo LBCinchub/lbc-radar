@@ -10,7 +10,7 @@ export default function GeofenceManager({ zones, onAdd, onDelete, onToggle, isDr
     <div
       style={{
         position: "absolute",
-        top: 60,
+        top: 90,
         right: 16,
         zIndex: 1000,
         minWidth: 200,
