@@ -69,6 +69,7 @@ export default function CorrelationPanel({ events, onSelectEventById, onGroupsCh
   const [groups, setGroups] = useState([]);
   const [loading, setLoading] = useState(false);
   const [lastRun, setLastRun] = useState(null);
+  const { t } = useLang();
 
   const analyze = async () => {
     if (!events || events.length < 3) return;

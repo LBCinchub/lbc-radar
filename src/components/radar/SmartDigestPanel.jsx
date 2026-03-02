@@ -21,6 +21,7 @@ export default function SmartDigestPanel({ events }) {
   const [digest, setDigest] = useState(null);
   const [loading, setLoading] = useState(false);
   const [expanded, setExpanded] = useState(true);
+  const { t } = useLang();
 
   const generateDigest = async () => {
     setLoading(true);

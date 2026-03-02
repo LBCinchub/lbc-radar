@@ -233,6 +233,7 @@ export default function TrendAnalysisPanel({ events }) {
   const [expanded, setExpanded] = useState(false);
   const [aiInsights, setAiInsights] = useState(null);
   const [loading, setLoading] = useState(false);
+  const { t } = useLang();
 
   const timelineData = useMemo(() => buildTimelineData(events), [events]);
   const regionData = useMemo(() => buildRegionData(events), [events]);
