@@ -45,7 +45,7 @@ export default function RadarMap({ events, selectedEvent, onSelectEvent }) {
     <div style={{ position: "relative", width: "100%", height: "100%" }}>
       <style>{`
         .leaflet-container { background: #050810 !important; }
-        .leaflet-tile-pane { filter: brightness(0.55) saturate(0.4); }
+        .leaflet-tile-pane { filter: brightness(0.85) saturate(0.6) contrast(1.1); }
         .leaflet-control-zoom, .leaflet-control-attribution { display: none !important; }
         .leaflet-tooltip { background: transparent !important; border: none !important; box-shadow: none !important; padding: 0 !important; }
         .leaflet-tooltip-top:before { display: none !important; }
