@@ -153,7 +153,7 @@ export default function MarketTickerPanel() {
 
       {expanded && (
         <div className="px-3 pb-3">
-          {loading && Object.keys(prices).length === 0 ? (
+          {Object.keys(prices).length === 0 ? (
             <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 0", fontSize: 10, color: "#475569" }}>
               <div style={{ width: 10, height: 10, border: "1.5px solid #10b981", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
               Fetching real-time market data...
