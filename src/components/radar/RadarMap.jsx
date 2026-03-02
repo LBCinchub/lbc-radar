@@ -71,10 +71,10 @@ export default function RadarMap({ events, selectedEvent, onSelectEvent }) {
       </MapContainer>
 
       {/* Corner decorations */}
-      <div className="absolute top-3 left-3 w-6 h-6 border-t-2 border-l-2 border-red-500/40 pointer-events-none z-20" />
-      <div className="absolute top-3 right-3 w-6 h-6 border-t-2 border-r-2 border-red-500/40 pointer-events-none z-20" />
-      <div className="absolute bottom-3 left-3 w-6 h-6 border-b-2 border-l-2 border-red-500/40 pointer-events-none z-20" />
-      <div className="absolute bottom-3 right-3 w-6 h-6 border-b-2 border-r-2 border-red-500/40 pointer-events-none z-20" />
+      <div className="absolute top-3 left-3 w-6 h-6 border-t-2 border-l-2 border-red-500/40 pointer-events-none z-[500]" />
+      <div className="absolute top-3 right-3 w-6 h-6 border-t-2 border-r-2 border-red-500/40 pointer-events-none z-[500]" />
+      <div className="absolute bottom-3 left-3 w-6 h-6 border-b-2 border-l-2 border-red-500/40 pointer-events-none z-[500]" />
+      <div className="absolute bottom-3 right-3 w-6 h-6 border-b-2 border-r-2 border-red-500/40 pointer-events-none z-[500]" />
 
       {/* Powered by AI badge */}
       <div className="absolute top-3 left-1/2 -translate-x-1/2 z-[500] pointer-events-none">
