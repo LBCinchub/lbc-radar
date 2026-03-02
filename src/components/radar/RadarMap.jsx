@@ -61,10 +61,18 @@ export default function RadarMap({ events, selectedEvent, onSelectEvent }) {
         minZoom={2}
         maxZoom={12}
       >
+        {/* Base dark map with clear country borders */}
         <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+          url="https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png"
           subdomains="abcd"
           maxZoom={19}
+        />
+        {/* Country borders + labels layer on top */}
+        <TileLayer
+          url="https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png"
+          subdomains="abcd"
+          maxZoom={19}
+          opacity={0.8}
         />
 
         {selectedEvent && <FlyTo event={selectedEvent} />}
