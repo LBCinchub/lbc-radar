@@ -126,7 +126,7 @@ Return JSON only. No markdown.`,
       {/* Header */}
       <div className="flex items-center gap-2 px-3 py-2.5">
         <GitBranch className="w-3.5 h-3.5 text-purple-400 shrink-0" />
-        <span className="text-[11px] font-bold tracking-widest text-slate-300 uppercase flex-1">Correlations</span>
+        <span className="text-[11px] font-bold tracking-widest text-slate-300 uppercase flex-1">{t.correlations}</span>
         <button
           onClick={analyze}
           disabled={loading}
@@ -150,7 +150,7 @@ Return JSON only. No markdown.`,
             <div className="flex flex-col items-center justify-center py-5 gap-2">
               <GitBranch className="w-5 h-5 text-slate-700" />
               <p className="text-[10px] text-slate-600 text-center leading-relaxed">
-                Click refresh to run AI<br />correlation analysis
+                {t.clickRefreshCorrelation.split('\n').map((line, i) => <span key={i}>{line}{i === 0 && <br />}</span>)}
               </p>
             </div>
           )}
@@ -164,7 +164,7 @@ Return JSON only. No markdown.`,
           ))}
           {lastRun && (
             <div className="text-[9px] text-slate-700 text-right mt-1">
-              Last analyzed {lastRun.toLocaleTimeString()}
+              {t.lastAnalyzed} {lastRun.toLocaleTimeString()}
             </div>
           )}
         </div>
