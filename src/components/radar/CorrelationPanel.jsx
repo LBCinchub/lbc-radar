@@ -11,7 +11,7 @@ const PATTERN_COLORS = [
   { border: "rgba(16,185,129,0.4)", bg: "rgba(16,185,129,0.06)", text: "#10b981", dot: "#10b981" },
 ];
 
-function CorrelationGroup({ group, index, onSelectEvent }) {
+function CorrelationGroup({ group, index, onSelectEvent, t }) {
   const [open, setOpen] = useState(index === 0);
   const color = PATTERN_COLORS[index % PATTERN_COLORS.length];
   const isEscalating = group.risk_level === "HIGH" || group.risk_level === "CRITICAL";
@@ -26,7 +26,7 @@ function CorrelationGroup({ group, index, onSelectEvent }) {
         <span className="flex-1 text-[11px] font-bold text-slate-200 leading-tight">{group.pattern_name}</span>
         {isEscalating && <TrendingUp className="w-3 h-3 text-red-400 shrink-0" />}
         <span className="text-[9px] font-bold px-1.5 py-0.5 rounded" style={{ color: color.text, background: `${color.dot}20` }}>
-          {group.event_ids?.length || 0} events
+          {group.event_ids?.length || 0} {t.events}
         </span>
         {open ? (
           <ChevronDown className="w-3 h-3 text-slate-500 shrink-0" />
@@ -42,7 +42,7 @@ function CorrelationGroup({ group, index, onSelectEvent }) {
             <div className="flex items-center gap-1.5 mb-2">
               <AlertTriangle className="w-2.5 h-2.5" style={{ color: color.text }} />
               <span className="text-[9px] font-bold uppercase tracking-widest" style={{ color: color.text }}>
-                Risk: {group.risk_level}
+                {t.risk} {group.risk_level}
               </span>
             </div>
           )}
@@ -160,6 +160,7 @@ Return JSON only. No markdown.`,
               group={group}
               index={i}
               onSelectEvent={onSelectEventById}
+              t={t}
             />
           ))}
           {lastRun && (
