@@ -22,31 +22,18 @@ export default function MarketTickerPanel() {
 
   const fetchPrices = async () => {
     setLoading(true);
-    const result = await base44.integrations.Core.InvokeLLM({
-      prompt: `You are a real-time financial data provider. Return the LATEST current market prices for these assets RIGHT NOW at this exact moment (${new Date().toISOString()}). Use live market data from the internet.\n\nAssets: Apple (AAPL), Microsoft (MSFT), NVIDIA (NVDA), Tesla (TSLA), Amazon (AMZN), Gold per troy oz (XAU), Silver per troy oz (XAG), WTI Crude Oil per barrel (OIL).\n\nFor each, provide the current price in USD and the current 1-day percent change. Be precise with real-time values.`,
-      add_context_from_internet: true,
-      response_json_schema: {
-        type: "object",
-        properties: {
-          prices: {
-            type: "array",
-            items: {
-              type: "object",
-              properties: {
-                symbol: { type: "string" },
-                price: { type: "number" },
-                change_pct: { type: "number" },
-              },
-            },
-          },
-        },
-      },
-    });
+    try {
+      const response = await base44.functions.invoke('getMarketPrices', {
+        symbols: SYMBOLS.map(s => s.symbol)
+      });
 
-    const map = {};
-    (result.prices || []).forEach((p) => { map[p.symbol] = p; });
-    setPrices(map);
-    setLastUpdated(new Date());
+      const map = {};
+      (response.data.prices || []).forEach((p) => { map[p.symbol] = p; });
+      setPrices(map);
+      setLastUpdated(new Date());
+    } catch (error) {
+      console.error('Failed to fetch prices:', error);
+    }
     setLoading(false);
   };
 
