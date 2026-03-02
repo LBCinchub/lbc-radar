@@ -1,6 +1,7 @@
 import { formatDistanceToNow } from "date-fns";
 import SeverityBadge from "./SeverityBadge";
 import { MapPin, Zap } from "lucide-react";
+import { useLang } from "../LanguageContext";
 
 const EVENT_TYPE_ICONS = {
   airstrike: "✈",
