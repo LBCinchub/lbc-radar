@@ -1,7 +1,6 @@
 import { useEffect, useRef } from "react";
-import { MapContainer, TileLayer, useMap, Marker, Tooltip, Polygon } from "react-leaflet";
+import { MapContainer, TileLayer, useMap, Marker, Tooltip, Polygon, useMapEvents } from "react-leaflet";
 import { useLang } from "../LanguageContext";
-import GeofenceManager from "./GeofenceManager";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -139,6 +138,61 @@ function FlyTo({ event }) {
     }
   }, [event?.id]);
   return null;
+}
+
+function DrawingLayer({ isDrawing, drawPoints, onAddPoint, onFinishDraw }) {
+  useMapEvents({
+    click(e) {
+      if (!isDrawing) return;
+      onAddPoint(e.latlng);
+    },
+    dblclick(e) {
+      if (!isDrawing) return;
+      e.originalEvent.preventDefault();
+      onFinishDraw();
+    },
+  });
+
+  if (!isDrawing || drawPoints.length === 0) return null;
+
+  // Convert [lng, lat] -> [lat, lng] for leaflet
+  const positions = drawPoints.map(([lng, lat]) => [lat, lng]);
+
+  return (
+    <>
+      <Polygon
+        positions={positions}
+        pathOptions={{ color: "#a78bfa", fillColor: "#a78bfa", fillOpacity: 0.15, dashArray: "6 4", weight: 2 }}
+      />
+      {positions.map((pos, i) => (
+        <Marker
+          key={i}
+          position={pos}
+          icon={L.divIcon({
+            html: `<div style="width:8px;height:8px;border-radius:50%;background:#a78bfa;border:2px solid #fff;box-shadow:0 0 6px #a78bfa88;"></div>`,
+            className: "",
+            iconSize: [8, 8],
+            iconAnchor: [4, 4],
+          })}
+        />
+      ))}
+    </>
+  );
+}
+
+function GeofenceZones({ zones }) {
+  return zones
+    .filter((z) => z.active && z.points.length >= 3)
+    .map((zone) => {
+      const positions = zone.points.map(([lng, lat]) => [lat, lng]);
+      return (
+        <Polygon
+          key={zone.id}
+          positions={positions}
+          pathOptions={{ color: zone.color, fillColor: zone.color, fillOpacity: 0.08, weight: 1.5, dashArray: "4 4" }}
+        />
+      );
+    });
 }
 
 export default function RadarMap({ events, selectedEvent, onSelectEvent, correlationGroups }) {
