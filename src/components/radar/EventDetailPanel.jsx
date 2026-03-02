@@ -16,6 +16,7 @@ const EVENT_TYPE_LABELS = {
 };
 
 export default function EventDetailPanel({ event, onClose }) {
+  const { t } = useLang();
   if (!event) return null;
 
   return (
@@ -32,7 +33,7 @@ export default function EventDetailPanel({ event, onClose }) {
             )}
             {event.is_escalation && (
               <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-red-500/10 border border-red-500/30 text-red-400 text-[10px] font-bold">
-                <Zap className="w-2.5 h-2.5" /> ESCALATION
+                <Zap className="w-2.5 h-2.5" /> {t.escalation}
               </span>
             )}
           </div>
@@ -73,7 +74,7 @@ export default function EventDetailPanel({ event, onClose }) {
           {event.confidence && (
             <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
               <Shield className="w-3 h-3 text-slate-600" />
-              {event.confidence}% confidence
+              {t.confidence(event.confidence)}
             </div>
           )}
         </div>
@@ -81,7 +82,7 @@ export default function EventDetailPanel({ event, onClose }) {
         {/* Summary */}
         {event.summary && (
           <div>
-            <p className="text-[10px] text-slate-500 uppercase tracking-widest mb-1.5">Summary</p>
+            <p className="text-[10px] text-slate-500 uppercase tracking-widest mb-1.5">{t.summary}</p>
             <p className="text-xs text-slate-300 leading-relaxed">{event.summary}</p>
           </div>
         )}
@@ -91,7 +92,7 @@ export default function EventDetailPanel({ event, onClose }) {
           <div className="rounded-lg bg-blue-900/10 border border-blue-500/20 p-3">
             <div className="flex items-center gap-1.5 mb-2">
               <Brain className="w-3 h-3 text-blue-400" />
-              <span className="text-[10px] text-blue-400 font-bold tracking-widest uppercase">AI Analysis</span>
+              <span className="text-[10px] text-blue-400 font-bold tracking-widest uppercase">{t.aiAnalysis}</span>
             </div>
             <p className="text-xs text-slate-300 leading-relaxed">{event.ai_analysis}</p>
           </div>
@@ -100,7 +101,7 @@ export default function EventDetailPanel({ event, onClose }) {
         {/* Tags */}
         {event.tags?.length > 0 && (
           <div>
-            <p className="text-[10px] text-slate-500 uppercase tracking-widest mb-1.5">Tags</p>
+            <p className="text-[10px] text-slate-500 uppercase tracking-widest mb-1.5">{t.tags}</p>
             <div className="flex flex-wrap gap-1">
               {event.tags.map((tag) => (
                 <span
