@@ -107,6 +107,7 @@ export default function Home() {
               events={events}
               selectedEvent={selectedEvent}
               onSelectEvent={setSelectedEvent}
+              correlationGroups={correlationGroups}
             />
           )}
         </main>
