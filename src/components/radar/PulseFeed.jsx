@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, Filter, Radio } from "lucide-react";
+import { Search, Radio, RefreshCw } from "lucide-react";
 import EventCard from "./EventCard";
 
 const FILTERS = [
