@@ -1,7 +1,6 @@
 import { useEffect, useRef } from "react";
-import { MapContainer, TileLayer, useMap, Marker, Tooltip, Polygon } from "react-leaflet";
+import { MapContainer, TileLayer, useMap, Marker, Tooltip, Polygon, useMapEvents } from "react-leaflet";
 import { useLang } from "../LanguageContext";
-import GeofenceManager from "./GeofenceManager";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -141,55 +140,62 @@ function FlyTo({ event }) {
   return null;
 }
 
-function DrawingHandler({ isDrawing, onAddPoint, onFinish }) {
-  const map = useMap();
-
-  useEffect(() => {
-    if (!isDrawing) {
-      map.getContainer().style.cursor = "";
-      return;
-    }
-    map.getContainer().style.cursor = "crosshair";
-
-    const handleClick = (e) => {
+function DrawingLayer({ isDrawing, drawPoints, onAddPoint, onFinishDraw }) {
+  useMapEvents({
+    click(e) {
+      if (!isDrawing) return;
       onAddPoint(e.latlng);
-    };
-    const handleDblClick = (e) => {
-      L.DomEvent.stop(e);
-      onFinish();
-    };
+    },
+    dblclick(e) {
+      if (!isDrawing) return;
+      e.originalEvent.preventDefault();
+      onFinishDraw();
+    },
+  });
 
-    map.on("click", handleClick);
-    map.on("dblclick", handleDblClick);
+  if (!isDrawing || drawPoints.length === 0) return null;
 
-    return () => {
-      map.off("click", handleClick);
-      map.off("dblclick", handleDblClick);
-      map.getContainer().style.cursor = "";
-    };
-  }, [isDrawing]);
+  // Convert [lng, lat] -> [lat, lng] for leaflet
+  const positions = drawPoints.map(([lng, lat]) => [lat, lng]);
 
-  return null;
+  return (
+    <>
+      <Polygon
+        positions={positions}
+        pathOptions={{ color: "#a78bfa", fillColor: "#a78bfa", fillOpacity: 0.15, dashArray: "6 4", weight: 2 }}
+      />
+      {positions.map((pos, i) => (
+        <Marker
+          key={i}
+          position={pos}
+          icon={L.divIcon({
+            html: `<div style="width:8px;height:8px;border-radius:50%;background:#a78bfa;border:2px solid #fff;box-shadow:0 0 6px #a78bfa88;"></div>`,
+            className: "",
+            iconSize: [8, 8],
+            iconAnchor: [4, 4],
+          })}
+        />
+      ))}
+    </>
+  );
 }
 
-function GeofencePolygons({ zones, geofencedEventIds }) {
-  return zones.filter((z) => z.active && z.points.length >= 3).map((zone) => (
-    <Polygon
-      key={zone.id}
-      positions={zone.points.map(([lng, lat]) => [lat, lng])}
-      pathOptions={{
-        color: zone.color,
-        fillColor: zone.color,
-        fillOpacity: 0.08,
-        weight: 1.5,
-        opacity: 0.6,
-        dashArray: "6 4",
-      }}
-    />
-  ));
+function GeofenceZones({ zones }) {
+  return zones
+    .filter((z) => z.active && z.points.length >= 3)
+    .map((zone) => {
+      const positions = zone.points.map(([lng, lat]) => [lat, lng]);
+      return (
+        <Polygon
+          key={zone.id}
+          positions={positions}
+          pathOptions={{ color: zone.color, fillColor: zone.color, fillOpacity: 0.08, weight: 1.5, dashArray: "4 4" }}
+        />
+      );
+    });
 }
 
-export default function RadarMap({ events, selectedEvent, onSelectEvent, correlationGroups, zones, isDrawing, drawPoints, onAddDrawPoint, onFinishDraw, onStartDraw, onCancelDraw, onDeleteZone, onToggleZone, geofencedEventIds }) {
+export default function RadarMap({ events, selectedEvent, onSelectEvent, correlationGroups, zones = [], isDrawing = false, drawPoints = [], onAddDrawPoint, onFinishDraw }) {
   const { t } = useLang();
   return (
     <div style={{ position: "relative", width: "100%", height: "100%" }}>
@@ -228,15 +234,9 @@ export default function RadarMap({ events, selectedEvent, onSelectEvent, correla
 
         {selectedEvent && <FlyTo event={selectedEvent} />}
         <CorrelationLines events={events} correlationGroups={correlationGroups} />
-        <GeofencePolygons zones={zones || []} geofencedEventIds={geofencedEventIds} />
-        {drawPoints?.length >= 2 && (
-          <Polygon
-            positions={drawPoints.map(([lng, lat]) => [lat, lng])}
-            pathOptions={{ color: "#a78bfa", fillColor: "#a78bfa", fillOpacity: 0.1, weight: 1.5, dashArray: "6 4" }}
-          />
-        )}
-        <DrawingHandler isDrawing={isDrawing} onAddPoint={onAddDrawPoint} onFinish={onFinishDraw} />
-        <EventMarkers events={events} selectedEvent={selectedEvent} onSelectEvent={onSelectEvent} geofencedEventIds={geofencedEventIds} />
+        <GeofenceZones zones={zones} />
+        <DrawingLayer isDrawing={isDrawing} drawPoints={drawPoints} onAddPoint={onAddDrawPoint} onFinishDraw={onFinishDraw} />
+        <EventMarkers events={events} selectedEvent={selectedEvent} onSelectEvent={onSelectEvent} />
       </MapContainer>
 
       {/* Corner brackets */}
