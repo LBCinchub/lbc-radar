@@ -20,7 +20,17 @@ export default function Home() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [alerts, setAlerts] = useState([]);
+  const [predictions, setPredictions] = useState([]);
   const [correlationGroups, setCorrelationGroups] = useState([]);
+
+  const addPrediction = useCallback((pred) => {
+    const id = Date.now() + Math.random();
+    setPredictions((prev) => [...prev.slice(-2), { id, pred }]);
+  }, []);
+
+  const removePrediction = useCallback((id) => {
+    setPredictions((prev) => prev.filter((p) => p.id !== id));
+  }, []);
 
   const addAlert = useCallback((event) => {
     const id = Date.now();
