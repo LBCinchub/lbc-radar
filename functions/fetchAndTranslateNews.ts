@@ -163,6 +163,118 @@ Deno.serve(async (req) => {
       console.log('NewsAPI fetch failed:', error.message);
     }
 
+    // Fetch BBC News RSS
+    try {
+      const bbcUrl = 'http://feeds.bbc.co.uk/news/world/rss.xml';
+      const bbcResponse = await fetch(bbcUrl);
+      if (bbcResponse.ok) {
+        const bbcText = await bbcResponse.text();
+        const itemRegex = /<item>([\s\S]*?)<\/item>/g;
+        let match;
+        while ((match = itemRegex.exec(bbcText)) !== null) {
+          const itemContent = match[1];
+          const titleMatch = /<title>(.*?)<\/title>/.exec(itemContent);
+          const descMatch = /<description>(.*?)<\/description>/.exec(itemContent);
+          const linkMatch = /<link>(.*?)<\/link>/.exec(itemContent);
+          if (titleMatch && descMatch) {
+            items.push({
+              headline: titleMatch[1].trim(),
+              content: descMatch[1].trim().replace(/<[^>]*>/g, ''),
+              source_url: linkMatch ? linkMatch[1].trim() : '',
+              author_name: 'BBC News',
+              region: 'Global'
+            });
+          }
+        }
+      }
+    } catch (error) {
+      console.log('BBC RSS fetch failed:', error.message);
+    }
+
+    // Fetch Guardian World News RSS
+    try {
+      const guardianUrl = 'https://www.theguardian.com/world/rss';
+      const guardianResponse = await fetch(guardianUrl);
+      if (guardianResponse.ok) {
+        const guardianText = await guardianResponse.text();
+        const itemRegex = /<item>([\s\S]*?)<\/item>/g;
+        let match;
+        while ((match = itemRegex.exec(guardianText)) !== null) {
+          const itemContent = match[1];
+          const titleMatch = /<title>(.*?)<\/title>/.exec(itemContent);
+          const descMatch = /<description>(.*?)<\/description>/.exec(itemContent);
+          const linkMatch = /<link>(.*?)<\/link>/.exec(itemContent);
+          if (titleMatch && descMatch) {
+            items.push({
+              headline: titleMatch[1].trim(),
+              content: descMatch[1].trim().replace(/<[^>]*>/g, ''),
+              source_url: linkMatch ? linkMatch[1].trim() : '',
+              author_name: 'The Guardian',
+              region: 'Global'
+            });
+          }
+        }
+      }
+    } catch (error) {
+      console.log('Guardian RSS fetch failed:', error.message);
+    }
+
+    // Fetch Al Jazeera English RSS
+    try {
+      const alJazeeraUrl = 'https://www.aljazeera.com/xml/rss/all.xml';
+      const alJazeeraResponse = await fetch(alJazeeraUrl);
+      if (alJazeeraResponse.ok) {
+        const alJazeeraText = await alJazeeraResponse.text();
+        const itemRegex = /<item>([\s\S]*?)<\/item>/g;
+        let match;
+        while ((match = itemRegex.exec(alJazeeraText)) !== null) {
+          const itemContent = match[1];
+          const titleMatch = /<title>(.*?)<\/title>/.exec(itemContent);
+          const descMatch = /<description>(.*?)<\/description>/.exec(itemContent);
+          const linkMatch = /<link>(.*?)<\/link>/.exec(itemContent);
+          if (titleMatch && descMatch) {
+            items.push({
+              headline: titleMatch[1].trim(),
+              content: descMatch[1].trim().replace(/<[^>]*>/g, ''),
+              source_url: linkMatch ? linkMatch[1].trim() : '',
+              author_name: 'Al Jazeera',
+              region: 'Global'
+            });
+          }
+        }
+      }
+    } catch (error) {
+      console.log('Al Jazeera RSS fetch failed:', error.message);
+    }
+
+    // Fetch Reuters News RSS
+    try {
+      const reutersUrl = 'https://www.reutersagency.com/rssFeed/worldNews';
+      const reutersResponse = await fetch(reutersUrl);
+      if (reutersResponse.ok) {
+        const reutersText = await reutersResponse.text();
+        const itemRegex = /<item>([\s\S]*?)<\/item>/g;
+        let match;
+        while ((match = itemRegex.exec(reutersText)) !== null) {
+          const itemContent = match[1];
+          const titleMatch = /<title>(.*?)<\/title>/.exec(itemContent);
+          const descMatch = /<description>(.*?)<\/description>/.exec(itemContent);
+          const linkMatch = /<link>(.*?)<\/link>/.exec(itemContent);
+          if (titleMatch && descMatch) {
+            items.push({
+              headline: titleMatch[1].trim(),
+              content: descMatch[1].trim().replace(/<[^>]*>/g, ''),
+              source_url: linkMatch ? linkMatch[1].trim() : '',
+              author_name: 'Reuters',
+              region: 'Global'
+            });
+          }
+        }
+      }
+    } catch (error) {
+      console.log('Reuters RSS fetch failed:', error.message);
+    }
+
     const translatedItems = [];
 
     for (const item of items.slice(0, 10)) {
