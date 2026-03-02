@@ -328,6 +328,13 @@ export const T = {
     typeCyberattack: "Cyberattaque",
     typeNaval: "Incident naval",
     typeOther: "Incident",
+    geofences: "Géofences",
+    drawZone: "Dessiner une zone",
+    drawingZone: "Cliquez sur la carte pour ajouter des points. Double-cliquez pour terminer.",
+    noZonesYet: "Aucune zone définie",
+    aiPrediction: "Prédiction IA",
+    predictionConfidence: "confiance",
+    viewRelatedEvent: "Voir l'événement lié",
   },
   es: {
     appSubtitle: "Inteligencia de conflictos globales",
