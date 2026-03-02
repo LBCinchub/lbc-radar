@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -126,12 +127,4 @@ body {
   box-shadow: 0 0 20px rgba(220, 38, 38, 0.15), inset 0 0 20px rgba(220, 38, 38, 0.05);
 }
 
-/* Map container */
-.leaflet-container {
-  background: #050810 !important;
-  font-family: 'Inter', sans-serif;
-}
-
-.leaflet-tile-pane { filter: saturate(0.8) brightness(0.75); }
-.leaflet-control-zoom { display: none !important; }
-.leaflet-control-attribution { display: none !important; }
+/* Map container - styles handled inline in RadarMap component */

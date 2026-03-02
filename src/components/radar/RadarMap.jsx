@@ -8,33 +8,23 @@ const SEVERITY_COLORS = {
   LOW: "#10b981",
 };
 
-// Rocket/missile icon for HIGH severity events (airstrikes, missiles, explosions)
 const ALERT_TYPES = ["airstrike", "missile", "explosion"];
 
-function makeIcon(event) {
-  const isAlert = ALERT_TYPES.includes(event.event_type);
+function makeIcon(event, isSelected) {
   const color = SEVERITY_COLORS[event.severity] || "#64748b";
+  const isAlert = ALERT_TYPES.includes(event.event_type);
 
   if (isAlert) {
-    // Rocket emoji marker with pulsing red ring
-    const html = `
-      <div style="position:relative;width:36px;height:36px;display:flex;align-items:center;justify-content:center;">
-        <div style="position:absolute;inset:0;border-radius:50%;background:${color};opacity:0.25;animation:ping 1.5s cubic-bezier(0,0,0.2,1) infinite;"></div>
-        <div style="position:absolute;inset:4px;border-radius:50%;background:${color};opacity:0.4;animation:ping 1.5s cubic-bezier(0,0,0.2,1) infinite 0.3s;"></div>
-        <span style="font-size:20px;z-index:1;filter:drop-shadow(0 0 6px ${color});">🚀</span>
-      </div>
-      <style>
-        @keyframes ping { 75%,100% { transform:scale(2); opacity:0; } }
-      </style>
-    `;
-    return L.divIcon({ html, className: "", iconSize: [36, 36], iconAnchor: [18, 18] });
+    const html = `<div style="position:relative;width:32px;height:32px;display:flex;align-items:center;justify-content:center;">
+      <span style="font-size:18px;filter:drop-shadow(0 0 8px ${color});z-index:1;">🚀</span>
+      ${isSelected ? `<div style="position:absolute;inset:-4px;border-radius:50%;border:2px solid ${color};animation:radarPing 1.2s ease-out infinite;"></div>` : ""}
+    </div>`;
+    return L.divIcon({ html, className: "", iconSize: [32, 32], iconAnchor: [16, 16] });
   }
 
-  // Regular dot for other events
-  const size = event.severity === "HIGH" ? 14 : event.severity === "MEDIUM" ? 11 : 9;
-  const html = `
-    <div style="width:${size}px;height:${size}px;border-radius:50%;background:${color};border:2px solid ${color};box-shadow:0 0 8px ${color}77;"></div>
-  `;
+  const size = event.severity === "HIGH" ? 12 : event.severity === "MEDIUM" ? 9 : 7;
+  const ring = isSelected ? `box-shadow:0 0 0 3px ${color}55,0 0 12px ${color};` : `box-shadow:0 0 6px ${color}88;`;
+  const html = `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${color};${ring}"></div>`;
   return L.divIcon({ html, className: "", iconSize: [size, size], iconAnchor: [size / 2, size / 2] });
 }
 
@@ -44,7 +34,7 @@ function FlyTo({ event }) {
     if (event?.latitude && event?.longitude) {
       map.flyTo([event.latitude, event.longitude], 6, { duration: 1.2 });
     }
-  }, [event]);
+  }, [event?.id]);
   return null;
 }
 
@@ -52,19 +42,28 @@ export default function RadarMap({ events, selectedEvent, onSelectEvent }) {
   const positioned = events.filter((e) => e.latitude && e.longitude);
 
   return (
-    <div className="relative w-full h-full">
+    <div style={{ position: "relative", width: "100%", height: "100%" }}>
+      <style>{`
+        .leaflet-container { background: #050810 !important; }
+        .leaflet-tile-pane { filter: brightness(0.55) saturate(0.4); }
+        .leaflet-control-zoom, .leaflet-control-attribution { display: none !important; }
+        .leaflet-tooltip { background: transparent !important; border: none !important; box-shadow: none !important; padding: 0 !important; }
+        .leaflet-tooltip-top:before { display: none !important; }
+        @keyframes radarPing { 0% { transform: scale(1); opacity: 0.8; } 100% { transform: scale(2.5); opacity: 0; } }
+      `}</style>
+
       <MapContainer
-        center={[25, 30]}
+        center={[25, 20]}
         zoom={3}
         style={{ width: "100%", height: "100%", background: "#050810" }}
         zoomControl={false}
         attributionControl={false}
         minZoom={2}
-        maxZoom={14}
+        maxZoom={12}
       >
-        {/* Satellite tile layer */}
         <TileLayer
-          url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+          subdomains="abcd"
           maxZoom={19}
         />
 
@@ -74,51 +73,52 @@ export default function RadarMap({ events, selectedEvent, onSelectEvent }) {
           <Marker
             key={event.id}
             position={[event.latitude, event.longitude]}
-            icon={makeIcon(event)}
+            icon={makeIcon(event, selectedEvent?.id === event.id)}
             eventHandlers={{ click: () => onSelectEvent?.(event) }}
           >
-            <Tooltip direction="top" offset={[0, -8]} opacity={0.95}>
-              <div style={{ background: "#0f1520", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 6, padding: "4px 8px", maxWidth: 200 }}>
-                <div style={{ fontSize: 11, fontWeight: 600, color: "#f1f5f9", lineHeight: 1.3 }}>{event.title}</div>
-                {event.country && (
-                  <div style={{ fontSize: 10, color: "#94a3b8", marginTop: 2 }}>{event.country}</div>
-                )}
+            <Tooltip direction="top" offset={[0, -6]} opacity={1}>
+              <div style={{
+                background: "#0f1520",
+                border: "1px solid rgba(255,255,255,0.1)",
+                borderRadius: 6,
+                padding: "5px 9px",
+                maxWidth: 200,
+              }}>
+                <div style={{ fontSize: 11, fontWeight: 600, color: "#f1f5f9", lineHeight: 1.4 }}>{event.title}</div>
+                {event.country && <div style={{ fontSize: 10, color: "#64748b", marginTop: 2 }}>{event.country}</div>}
               </div>
             </Tooltip>
           </Marker>
         ))}
       </MapContainer>
 
-      {/* Corner decorations */}
-      <div className="absolute top-3 left-3 w-6 h-6 border-t-2 border-l-2 border-red-500/40 pointer-events-none z-[500]" />
-      <div className="absolute top-3 right-3 w-6 h-6 border-t-2 border-r-2 border-red-500/40 pointer-events-none z-[500]" />
-      <div className="absolute bottom-3 left-3 w-6 h-6 border-b-2 border-l-2 border-red-500/40 pointer-events-none z-[500]" />
-      <div className="absolute bottom-3 right-3 w-6 h-6 border-b-2 border-r-2 border-red-500/40 pointer-events-none z-[500]" />
+      {/* Corner brackets */}
+      <div style={{ position:"absolute", top:10, left:10, width:20, height:20, borderTop:"2px solid rgba(220,38,38,0.5)", borderLeft:"2px solid rgba(220,38,38,0.5)", pointerEvents:"none", zIndex:500 }} />
+      <div style={{ position:"absolute", top:10, right:10, width:20, height:20, borderTop:"2px solid rgba(220,38,38,0.5)", borderRight:"2px solid rgba(220,38,38,0.5)", pointerEvents:"none", zIndex:500 }} />
+      <div style={{ position:"absolute", bottom:10, left:10, width:20, height:20, borderBottom:"2px solid rgba(220,38,38,0.5)", borderLeft:"2px solid rgba(220,38,38,0.5)", pointerEvents:"none", zIndex:500 }} />
+      <div style={{ position:"absolute", bottom:10, right:10, width:20, height:20, borderBottom:"2px solid rgba(220,38,38,0.5)", borderRight:"2px solid rgba(220,38,38,0.5)", pointerEvents:"none", zIndex:500 }} />
 
-      {/* Powered by AI badge */}
-      <div className="absolute top-3 left-1/2 -translate-x-1/2 z-[500] pointer-events-none">
-        <div className="flex items-center gap-1.5 bg-black/70 backdrop-blur px-3 py-1 rounded-full border border-blue-500/30">
-          <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
-          <span className="text-[10px] text-blue-300 font-bold tracking-widest uppercase">Powered by AI</span>
+      {/* Powered by AI */}
+      <div style={{ position:"absolute", top:10, left:"50%", transform:"translateX(-50%)", zIndex:500, pointerEvents:"none" }}>
+        <div style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(0,0,0,0.7)", backdropFilter:"blur(8px)", padding:"4px 12px", borderRadius:20, border:"1px solid rgba(59,130,246,0.3)" }}>
+          <span style={{ width:6, height:6, borderRadius:"50%", background:"#60a5fa", animation:"pulse 2s infinite" }} />
+          <span style={{ fontSize:10, color:"#93c5fd", fontWeight:700, letterSpacing:"0.1em", textTransform:"uppercase" }}>Powered by AI</span>
         </div>
       </div>
 
       {/* Legend */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-[500] flex gap-2 pointer-events-none">
-        <div className="flex items-center gap-1.5 bg-black/70 backdrop-blur px-2 py-1 rounded border border-white/10">
-          <span className="text-sm">🚀</span>
-          <span className="text-[10px] text-white/60">Missile/Airstrike</span>
+      <div style={{ position:"absolute", bottom:16, left:"50%", transform:"translateX(-50%)", zIndex:500, display:"flex", gap:8, pointerEvents:"none" }}>
+        <div style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(0,0,0,0.7)", padding:"4px 10px", borderRadius:6, border:"1px solid rgba(255,255,255,0.08)" }}>
+          <span style={{ fontSize:12 }}>🚀</span>
+          <span style={{ fontSize:10, color:"rgba(255,255,255,0.5)" }}>Missile/Strike</span>
         </div>
-        {["HIGH", "MEDIUM", "LOW"].map((s) => {
-          const count = events.filter((e) => e.severity === s).length;
-          return (
-            <div key={s} className="flex items-center gap-1.5 bg-black/70 backdrop-blur px-2 py-1 rounded border border-white/10">
-              <span className="w-2 h-2 rounded-full" style={{ background: SEVERITY_COLORS[s] }} />
-              <span className="text-[10px] font-bold text-white/70 tracking-widest">{s}</span>
-              <span className="text-[10px] font-mono text-white">{count}</span>
-            </div>
-          );
-        })}
+        {["HIGH","MEDIUM","LOW"].map((s) => (
+          <div key={s} style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(0,0,0,0.7)", padding:"4px 10px", borderRadius:6, border:"1px solid rgba(255,255,255,0.08)" }}>
+            <span style={{ width:8, height:8, borderRadius:"50%", background: SEVERITY_COLORS[s] }} />
+            <span style={{ fontSize:10, color:"rgba(255,255,255,0.6)", fontWeight:700, letterSpacing:"0.1em" }}>{s}</span>
+            <span style={{ fontSize:10, color:"#fff", fontFamily:"monospace" }}>{events.filter(e => e.severity === s).length}</span>
+          </div>
+        ))}
       </div>
     </div>
   );
