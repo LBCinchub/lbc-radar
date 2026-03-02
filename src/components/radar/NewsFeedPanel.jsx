@@ -10,7 +10,7 @@ const STATUS_CONFIG = {
   false:      { label: "False Info",   color: "#ef4444", icon: XCircle,       bg: "rgba(239,68,68,0.1)"   },
 };
 
-function SubmitForm({ onSubmit, onCancel }) {
+function SubmitForm({ onSubmit, onCancel, t }) {
   const [form, setForm] = useState({ headline: "", content: "", source_url: "", author_name: "", region: "" });
   const [submitting, setSubmitting] = useState(false);
 
@@ -40,13 +40,13 @@ function SubmitForm({ onSubmit, onCancel }) {
 
   return (
     <form onSubmit={handleSubmit} style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 6, padding: 10, marginBottom: 8 }}>
-      <div style={{ fontSize: 10, fontWeight: 700, color: "#94a3b8", marginBottom: 8, letterSpacing: "0.08em", textTransform: "uppercase" }}>Submit News Report</div>
+      <div style={{ fontSize: 10, fontWeight: 700, color: "#94a3b8", marginBottom: 8, letterSpacing: "0.08em", textTransform: "uppercase" }}>{t.submitNewsReport}</div>
       <div className="space-y-2">
-        {field("headline", "Headline *")}
-        {field("content", "Describe the news in detail... *", true)}
-        {field("source_url", "Source URL (optional)")}
-        {field("author_name", "Your name (optional)")}
-        {field("region", "Region / Country (optional)")}
+        {field("headline", t.headline)}
+        {field("content", t.describeNews, true)}
+        {field("source_url", t.sourceUrl)}
+        {field("author_name", t.authorName)}
+        {field("region", t.regionCountry)}
       </div>
       <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
         <button type="submit" disabled={submitting} style={{
@@ -54,12 +54,12 @@ function SubmitForm({ onSubmit, onCancel }) {
           background: submitting ? "rgba(59,130,246,0.3)" : "rgba(59,130,246,0.7)",
           border: "1px solid rgba(59,130,246,0.4)", borderRadius: 4, padding: "5px 0", cursor: submitting ? "not-allowed" : "pointer"
         }}>
-          {submitting ? "Submitting..." : "Submit & Verify"}
+          {submitting ? t.submitting : t.submitVerify}
         </button>
         <button type="button" onClick={onCancel} style={{
           fontSize: 10, color: "#64748b", background: "transparent", border: "1px solid rgba(255,255,255,0.06)",
           borderRadius: 4, padding: "5px 10px", cursor: "pointer"
-        }}>Cancel</button>
+        }}>{t.cancel}</button>
       </div>
     </form>
   );
