@@ -28,7 +28,9 @@ export default function AddEventModal({ onClose, onSave }) {
     event_type: "other",
     country: "",
     country_code: "",
+    affected_countries: [],
     region: "",
+    impact_level: "military",
     confidence: 75,
     is_escalation: false,
     latitude: null,
@@ -52,13 +54,15 @@ export default function AddEventModal({ onClose, onSave }) {
     if (!form.title) return;
     setAiLoading(true);
     const result = await base44.integrations.Core.InvokeLLM({
-      prompt: `You are a conflict intelligence analyst. Given this event title, generate structured intelligence data:\n\nTitle: "${form.title}"\n\nProvide a detailed summary, suggest severity (HIGH/MEDIUM/LOW), confidence level (0-100), and relevant tags.`,
+      prompt: `You are a conflict intelligence analyst. Given this event title, generate structured intelligence data:\n\nTitle: "${form.title}"\n\nProvide a detailed summary, suggest severity (HIGH/MEDIUM/LOW), confidence level (0-100), impact level (economic/military/political/humanitarian/environmental/infrastructure), affected countries, and relevant tags.`,
       response_json_schema: {
         type: "object",
         properties: {
           summary: { type: "string" },
           severity: { type: "string" },
           confidence: { type: "number" },
+          impact_level: { type: "string" },
+          affected_countries: { type: "array", items: { type: "string" } },
           tags: { type: "array", items: { type: "string" } },
           ai_analysis: { type: "string" },
           is_escalation: { type: "boolean" },
@@ -68,6 +72,8 @@ export default function AddEventModal({ onClose, onSave }) {
     if (result.summary) set("summary", result.summary);
     if (result.severity) set("severity", result.severity);
     if (result.confidence) set("confidence", result.confidence);
+    if (result.impact_level) set("impact_level", result.impact_level);
+    if (result.affected_countries) set("affected_countries", result.affected_countries);
     if (result.tags) set("tags", result.tags);
     if (result.ai_analysis) set("ai_analysis", result.ai_analysis);
     if (result.is_escalation !== undefined) set("is_escalation", result.is_escalation);
@@ -115,62 +121,100 @@ export default function AddEventModal({ onClose, onSave }) {
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-[10px] text-slate-500 uppercase tracking-widest mb-1 block">{t.severity}</label>
-              <select
-                value={form.severity}
-                onChange={(e) => set("severity", e.target.value)}
-                className="w-full bg-slate-800/50 border border-white/[0.07] rounded text-xs text-slate-200 px-3 py-2 focus:outline-none"
-              >
-                <option value="HIGH">HIGH</option>
-                <option value="MEDIUM">MEDIUM</option>
-                <option value="LOW">LOW</option>
-              </select>
-            </div>
-            <div>
-              <label className="text-[10px] text-slate-500 uppercase tracking-widest mb-1 block">{t.eventType}</label>
-              <select
-                value={form.event_type}
-                onChange={(e) => set("event_type", e.target.value)}
-                className="w-full bg-slate-800/50 border border-white/[0.07] rounded text-xs text-slate-200 px-3 py-2 focus:outline-none"
-              >
-                {["airstrike","missile","explosion","clash","threat","diplomatic","cyberattack","naval","other"].map((t) => (
-                  <option key={t} value={t}>{t}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="text-[10px] text-slate-500 uppercase tracking-widest mb-1 block">{t.country}</label>
-              <select
-                value={form.country}
-                onChange={(e) => handleCountryChange(e.target.value)}
-                className="w-full bg-slate-800/50 border border-white/[0.07] rounded text-xs text-slate-200 px-3 py-2 focus:outline-none"
-              >
-                <option value="">{t.selectCountry}</option>
-                {COUNTRIES.map((c) => <option key={c.code} value={c.name}>{c.name}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="text-[10px] text-slate-500 uppercase tracking-widest mb-1 block">{t.confidencePct}</label>
-              <input
-                type="number"
-                min="0" max="100"
-                value={form.confidence}
-                onChange={(e) => set("confidence", Number(e.target.value))}
-                className="w-full bg-slate-800/50 border border-white/[0.07] rounded text-xs text-slate-200 px-3 py-2 focus:outline-none"
-              />
-            </div>
-          </div>
+             <div>
+               <label className="text-[10px] text-slate-500 uppercase tracking-widest mb-1 block">{t.severity}</label>
+               <select
+                 value={form.severity}
+                 onChange={(e) => set("severity", e.target.value)}
+                 className="w-full bg-slate-800/50 border border-white/[0.07] rounded text-xs text-slate-200 px-3 py-2 focus:outline-none"
+               >
+                 <option value="HIGH">HIGH</option>
+                 <option value="MEDIUM">MEDIUM</option>
+                 <option value="LOW">LOW</option>
+               </select>
+             </div>
+             <div>
+               <label className="text-[10px] text-slate-500 uppercase tracking-widest mb-1 block">{t.eventType}</label>
+               <select
+                 value={form.event_type}
+                 onChange={(e) => set("event_type", e.target.value)}
+                 className="w-full bg-slate-800/50 border border-white/[0.07] rounded text-xs text-slate-200 px-3 py-2 focus:outline-none"
+               >
+                 {["airstrike","missile","explosion","clash","threat","diplomatic","cyberattack","naval","other"].map((t) => (
+                   <option key={t} value={t}>{t}</option>
+                 ))}
+               </select>
+             </div>
+             <div>
+               <label className="text-[10px] text-slate-500 uppercase tracking-widest mb-1 block">{t.country}</label>
+               <select
+                 value={form.country}
+                 onChange={(e) => handleCountryChange(e.target.value)}
+                 className="w-full bg-slate-800/50 border border-white/[0.07] rounded text-xs text-slate-200 px-3 py-2 focus:outline-none"
+               >
+                 <option value="">{t.selectCountry}</option>
+                 {COUNTRIES.map((c) => <option key={c.code} value={c.name}>{c.name}</option>)}
+               </select>
+             </div>
+             <div>
+               <label className="text-[10px] text-slate-500 uppercase tracking-widest mb-1 block">{t.confidencePct}</label>
+               <input
+                 type="number"
+                 min="0" max="100"
+                 value={form.confidence}
+                 onChange={(e) => set("confidence", Number(e.target.value))}
+                 className="w-full bg-slate-800/50 border border-white/[0.07] rounded text-xs text-slate-200 px-3 py-2 focus:outline-none"
+               />
+             </div>
+             <div>
+               <label className="text-[10px] text-slate-500 uppercase tracking-widest mb-1 block">Impact Level</label>
+               <select
+                 value={form.impact_level}
+                 onChange={(e) => set("impact_level", e.target.value)}
+                 className="w-full bg-slate-800/50 border border-white/[0.07] rounded text-xs text-slate-200 px-3 py-2 focus:outline-none"
+               >
+                 <option value="military">Military</option>
+                 <option value="economic">Economic</option>
+                 <option value="political">Political</option>
+                 <option value="humanitarian">Humanitarian</option>
+                 <option value="environmental">Environmental</option>
+                 <option value="infrastructure">Infrastructure</option>
+               </select>
+             </div>
+           </div>
 
           <div>
-            <label className="text-[10px] text-slate-500 uppercase tracking-widest mb-1 block">{t.regionLocation}</label>
-            <input
-              value={form.region}
-              onChange={(e) => set("region", e.target.value)}
-              placeholder={t.regionPlaceholder}
-              className="w-full bg-slate-800/50 border border-white/[0.07] rounded text-xs text-slate-200 px-3 py-2 focus:outline-none"
-            />
-          </div>
+             <label className="text-[10px] text-slate-500 uppercase tracking-widest mb-1 block">{t.regionLocation}</label>
+             <input
+               value={form.region}
+               onChange={(e) => set("region", e.target.value)}
+               placeholder={t.regionPlaceholder}
+               className="w-full bg-slate-800/50 border border-white/[0.07] rounded text-xs text-slate-200 px-3 py-2 focus:outline-none"
+             />
+           </div>
+
+           <div>
+             <label className="text-[10px] text-slate-500 uppercase tracking-widest mb-1 block">Affected Countries</label>
+             <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto">
+               {COUNTRIES.filter(c => c.name !== "Other").map((country) => (
+                 <label key={country.code} className="flex items-center gap-2 cursor-pointer text-xs">
+                   <input
+                     type="checkbox"
+                     checked={form.affected_countries.includes(country.name)}
+                     onChange={(e) => {
+                       if (e.target.checked) {
+                         set("affected_countries", [...form.affected_countries, country.name]);
+                       } else {
+                         set("affected_countries", form.affected_countries.filter(c => c !== country.name));
+                       }
+                     }}
+                     className="w-3 h-3 accent-red-500"
+                   />
+                   <span className="text-slate-300">{country.name}</span>
+                 </label>
+               ))}
+             </div>
+           </div>
 
           <div>
             <label className="text-[10px] text-slate-500 uppercase tracking-widest mb-1 block">{t.summaryLabel}</label>
