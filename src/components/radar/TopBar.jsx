@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Radio, Plus, Clock } from "lucide-react";
+import { Radio, Plus, Zap } from "lucide-react";
 
 export default function TopBar({ eventCount, onAddEvent }) {
   const [time, setTime] = useState(new Date());
