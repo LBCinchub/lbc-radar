@@ -165,6 +165,21 @@ function NewsCard({ post, t, selectedLangs = ["en", "ar"], highlightAssets = [] 
         </div>
       )}
 
+      {/* Executive summary */}
+      {post.executive_summary && (
+        <div style={{ background: "rgba(100,116,139,0.1)", borderLeft: `2px solid #94a3b855`, padding: "6px 8px", marginBottom: 4 }}>
+          <div style={{ fontSize: 8, fontWeight: 700, color: "#cbd5e1", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 3 }}>Executive Summary</div>
+          <p style={{ fontSize: 9, color: "#cbd5e1", lineHeight: 1.5, marginBottom: post.key_impacts?.length > 0 ? 3 : 0 }}>{post.executive_summary}</p>
+          {post.key_impacts && post.key_impacts.length > 0 && (
+            <div style={{ fontSize: 8, color: "#94a3b8" }}>
+              {post.key_impacts.map((impact, idx) => (
+                <div key={idx} style={{ marginTop: 2, paddingLeft: 8, borderLeft: "1px solid #475569" }}>→ {impact}</div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Mentioned assets */}
       {post.mentioned_assets && post.mentioned_assets.length > 0 && (
         <div style={{ background: "rgba(255,255,255,0.02)", borderLeft: `2px solid #3b82f655`, padding: "4px 8px", marginBottom: 4 }}>
