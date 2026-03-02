@@ -16,9 +16,10 @@ const EVENT_TYPE_ICONS = {
 };
 
 export default function EventCard({ event, onClick, isSelected }) {
+  const { t } = useLang();
   const timeAgo = event.created_date
     ? formatDistanceToNow(new Date(event.created_date), { addSuffix: false })
-    : "just now";
+    : t.justNow;
 
   return (
     <div
@@ -33,7 +34,7 @@ export default function EventCard({ event, onClick, isSelected }) {
           <SeverityBadge severity={event.severity} small />
           {event.is_escalation && (
             <span className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded bg-red-500/10 border border-red-500/20 text-red-400 text-[9px] font-bold tracking-widest">
-              <Zap className="w-2 h-2" /> ESC
+              <Zap className="w-2 h-2" /> {t.filterEsc}
             </span>
           )}
         </div>
@@ -66,7 +67,7 @@ export default function EventCard({ event, onClick, isSelected }) {
         )}
         {event.confidence && (
           <span className="ml-auto text-[10px] text-slate-600 font-mono">
-            {event.confidence}% conf.
+            {event.confidence}% {t.conf}
           </span>
         )}
       </div>
