@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
 import TopBar from "../components/radar/TopBar";
 import PulseFeed from "../components/radar/PulseFeed";
@@ -6,6 +6,7 @@ import RadarMap from "../components/radar/RadarMap";
 import EventDetailPanel from "../components/radar/EventDetailPanel";
 import SmartDigestPanel from "../components/radar/SmartDigestPanel";
 import AddEventModal from "../components/radar/AddEventModal";
+import { AlertStack } from "../components/radar/AlertNotificationStack";
 
 export default function Home() {
   const [events, setEvents] = useState([]);
