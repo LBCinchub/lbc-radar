@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
-import { MapContainer, TileLayer, useMap, Marker, Tooltip, Polygon, useMapEvents } from "react-leaflet";
+import { MapContainer, TileLayer, useMap, Marker, Tooltip, Polygon } from "react-leaflet";
 import { useLang } from "../LanguageContext";
+import GeofenceManager from "./GeofenceManager";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -108,26 +109,24 @@ function CorrelationLines({ events, correlationGroups }) {
   return null;
 }
 
-function EventMarkers({ events, selectedEvent, onSelectEvent }) {
+function EventMarkers({ events, selectedEvent, onSelectEvent, geofencedEventIds }) {
   const positioned = events.filter((e) => e.latitude && e.longitude);
 
-  return positioned.map((event) => (
-    <Marker
-      key={event.id}
-      position={[event.latitude, event.longitude]}
-      icon={makeIcon(event, selectedEvent?.id === event.id)}
-      eventHandlers={{ click: () => onSelectEvent?.(event) }}
-    >
-      <Tooltip
-        direction="top"
-        offset={[0, -8]}
-        opacity={1}
-        className="radar-tooltip"
+  return positioned.map((event) => {
+    const inZone = geofencedEventIds?.has(event.id);
+    return (
+      <Marker
+        key={event.id}
+        position={[event.latitude, event.longitude]}
+        icon={makeIcon(event, selectedEvent?.id === event.id, inZone)}
+        eventHandlers={{ click: () => onSelectEvent?.(event) }}
       >
-        <div dangerouslySetInnerHTML={{ __html: makeTooltipContent(event) }} />
-      </Tooltip>
-    </Marker>
-  ));
+        <Tooltip direction="top" offset={[0, -8]} opacity={1} className="radar-tooltip">
+          <div dangerouslySetInnerHTML={{ __html: makeTooltipContent(event) }} />
+        </Tooltip>
+      </Marker>
+    );
+  });
 }
 
 function FlyTo({ event }) {
@@ -140,62 +139,55 @@ function FlyTo({ event }) {
   return null;
 }
 
-function DrawingLayer({ isDrawing, drawPoints, onAddPoint, onFinishDraw }) {
-  useMapEvents({
-    click(e) {
-      if (!isDrawing) return;
+function DrawingHandler({ isDrawing, onAddPoint, onFinish }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!isDrawing) {
+      map.getContainer().style.cursor = "";
+      return;
+    }
+    map.getContainer().style.cursor = "crosshair";
+
+    const handleClick = (e) => {
       onAddPoint(e.latlng);
-    },
-    dblclick(e) {
-      if (!isDrawing) return;
-      e.originalEvent.preventDefault();
-      onFinishDraw();
-    },
-  });
+    };
+    const handleDblClick = (e) => {
+      L.DomEvent.stop(e);
+      onFinish();
+    };
 
-  if (!isDrawing || drawPoints.length === 0) return null;
+    map.on("click", handleClick);
+    map.on("dblclick", handleDblClick);
 
-  // Convert [lng, lat] -> [lat, lng] for leaflet
-  const positions = drawPoints.map(([lng, lat]) => [lat, lng]);
+    return () => {
+      map.off("click", handleClick);
+      map.off("dblclick", handleDblClick);
+      map.getContainer().style.cursor = "";
+    };
+  }, [isDrawing]);
 
-  return (
-    <>
-      <Polygon
-        positions={positions}
-        pathOptions={{ color: "#a78bfa", fillColor: "#a78bfa", fillOpacity: 0.15, dashArray: "6 4", weight: 2 }}
-      />
-      {positions.map((pos, i) => (
-        <Marker
-          key={i}
-          position={pos}
-          icon={L.divIcon({
-            html: `<div style="width:8px;height:8px;border-radius:50%;background:#a78bfa;border:2px solid #fff;box-shadow:0 0 6px #a78bfa88;"></div>`,
-            className: "",
-            iconSize: [8, 8],
-            iconAnchor: [4, 4],
-          })}
-        />
-      ))}
-    </>
-  );
+  return null;
 }
 
-function GeofenceZones({ zones }) {
-  return zones
-    .filter((z) => z.active && z.points.length >= 3)
-    .map((zone) => {
-      const positions = zone.points.map(([lng, lat]) => [lat, lng]);
-      return (
-        <Polygon
-          key={zone.id}
-          positions={positions}
-          pathOptions={{ color: zone.color, fillColor: zone.color, fillOpacity: 0.08, weight: 1.5, dashArray: "4 4" }}
-        />
-      );
-    });
+function GeofencePolygons({ zones, geofencedEventIds }) {
+  return zones.filter((z) => z.active && z.points.length >= 3).map((zone) => (
+    <Polygon
+      key={zone.id}
+      positions={zone.points.map(([lng, lat]) => [lat, lng])}
+      pathOptions={{
+        color: zone.color,
+        fillColor: zone.color,
+        fillOpacity: 0.08,
+        weight: 1.5,
+        opacity: 0.6,
+        dashArray: "6 4",
+      }}
+    />
+  ));
 }
 
-export default function RadarMap({ events, selectedEvent, onSelectEvent, correlationGroups, zones = [], isDrawing = false, drawPoints = [], onAddDrawPoint, onFinishDraw }) {
+export default function RadarMap({ events, selectedEvent, onSelectEvent, correlationGroups, zones, isDrawing, drawPoints, onAddDrawPoint, onFinishDraw, onStartDraw, onCancelDraw, onDeleteZone, onToggleZone, geofencedEventIds }) {
   const { t } = useLang();
   return (
     <div style={{ position: "relative", width: "100%", height: "100%" }}>
@@ -234,9 +226,15 @@ export default function RadarMap({ events, selectedEvent, onSelectEvent, correla
 
         {selectedEvent && <FlyTo event={selectedEvent} />}
         <CorrelationLines events={events} correlationGroups={correlationGroups} />
-        <GeofenceZones zones={zones} />
-        <DrawingLayer isDrawing={isDrawing} drawPoints={drawPoints} onAddPoint={onAddDrawPoint} onFinishDraw={onFinishDraw} />
-        <EventMarkers events={events} selectedEvent={selectedEvent} onSelectEvent={onSelectEvent} />
+        <GeofencePolygons zones={zones || []} geofencedEventIds={geofencedEventIds} />
+        {drawPoints?.length >= 2 && (
+          <Polygon
+            positions={drawPoints.map(([lng, lat]) => [lat, lng])}
+            pathOptions={{ color: "#a78bfa", fillColor: "#a78bfa", fillOpacity: 0.1, weight: 1.5, dashArray: "6 4" }}
+          />
+        )}
+        <DrawingHandler isDrawing={isDrawing} onAddPoint={onAddDrawPoint} onFinish={onFinishDraw} />
+        <EventMarkers events={events} selectedEvent={selectedEvent} onSelectEvent={onSelectEvent} geofencedEventIds={geofencedEventIds} />
       </MapContainer>
 
       {/* Corner brackets */}
