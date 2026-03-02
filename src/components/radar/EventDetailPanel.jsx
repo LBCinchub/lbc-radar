@@ -28,7 +28,7 @@ export default function EventDetailPanel({ event, onClose }) {
             <SeverityBadge severity={event.severity} />
             {event.event_type && (
               <span className="text-[10px] text-slate-400 bg-slate-800/60 px-1.5 py-0.5 rounded border border-white/[0.06] uppercase tracking-wider">
-                {EVENT_TYPE_LABELS[event.event_type] || event.event_type}
+                {t[EVENT_TYPE_KEYS[event.event_type]] || event.event_type}
               </span>
             )}
             {event.is_escalation && (
