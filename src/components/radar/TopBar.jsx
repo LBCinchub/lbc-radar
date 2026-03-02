@@ -39,6 +39,10 @@ export default function TopBar({ eventCount, onAddEvent }) {
           <span className="text-[10px] text-slate-400">Active Events:</span>
           <span className="text-[10px] font-bold text-white font-mono">{eventCount}</span>
         </div>
+        <div className="flex items-center gap-1.5 bg-blue-500/10 px-2 py-1 rounded border border-blue-500/25">
+          <Zap className="w-2.5 h-2.5 text-blue-400" />
+          <span className="text-[10px] text-blue-400 font-bold tracking-widest">AI REAL-TIME</span>
+        </div>
       </div>
 
       {/* Actions */}
