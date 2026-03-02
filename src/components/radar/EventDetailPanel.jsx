@@ -3,16 +3,16 @@ import { formatDistanceToNow, format } from "date-fns";
 import SeverityBadge from "./SeverityBadge";
 import { useLang } from "../LanguageContext";
 
-const EVENT_TYPE_LABELS = {
-  airstrike: "Airstrike",
-  missile: "Missile Attack",
-  explosion: "Explosion",
-  clash: "Armed Clash",
-  threat: "Threat",
-  diplomatic: "Diplomatic",
-  cyberattack: "Cyberattack",
-  naval: "Naval Incident",
-  other: "Incident",
+const EVENT_TYPE_KEYS = {
+  airstrike: "typeAirstrike",
+  missile: "typeMissile",
+  explosion: "typeExplosion",
+  clash: "typeClash",
+  threat: "typeThreat",
+  diplomatic: "typeDiplomatic",
+  cyberattack: "typeCyberattack",
+  naval: "typeNaval",
+  other: "typeOther",
 };
 
 export default function EventDetailPanel({ event, onClose }) {

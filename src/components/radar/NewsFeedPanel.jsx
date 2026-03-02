@@ -4,10 +4,10 @@ import { Newspaper, Plus, X, Loader2, CheckCircle2, XCircle, Clock, Link, Chevro
 import { useLang } from "../LanguageContext";
 
 const STATUS_CONFIG = {
-  pending:    { label: "Checking...",   color: "#64748b", icon: Clock,         bg: "rgba(100,116,139,0.1)" },
-  verified:   { label: "AI Verified",  color: "#10b981", icon: CheckCircle2,  bg: "rgba(16,185,129,0.1)"  },
-  unverified: { label: "Unverified",   color: "#f59e0b", icon: XCircle,       bg: "rgba(245,158,11,0.1)"  },
-  false:      { label: "False Info",   color: "#ef4444", icon: XCircle,       bg: "rgba(239,68,68,0.1)"   },
+  pending:    { key: "statusChecking",   color: "#64748b", icon: Clock,         bg: "rgba(100,116,139,0.1)" },
+  verified:   { key: "statusVerified",  color: "#10b981", icon: CheckCircle2,  bg: "rgba(16,185,129,0.1)"  },
+  unverified: { key: "statusUnverified", color: "#f59e0b", icon: XCircle,       bg: "rgba(245,158,11,0.1)"  },
+  false:      { key: "statusFalse",     color: "#ef4444", icon: XCircle,       bg: "rgba(239,68,68,0.1)"   },
 };
 
 function SubmitForm({ onSubmit, onCancel, t }) {
