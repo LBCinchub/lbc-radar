@@ -28,7 +28,7 @@ export default function Home() {
   }, []);
 
   const loadEvents = async () => {
-    const data = await base44.entities.ConflictEvent.list("-created_date", 100);
+    const data = await base44.entities.ConflictEvent.list("-created_date", 500);
     setEvents(data);
     setLoading(false);
   };
