@@ -1,22 +1,28 @@
 import { useState, useMemo } from "react";
 import {
   TrendingUp, ChevronDown, ChevronUp, Loader2, RefreshCw,
-  BarChart2, Flame, MapPin, AlertTriangle
+  BarChart2, Flame, MapPin, AlertTriangle, Grid3x3
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import {
-  AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip,
-  ResponsiveContainer, Cell
+  AreaChart, Area, LineChart, Line, BarChart, Bar,
+  XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, Legend
 } from "recharts";
 
 const SEV_COLOR = { HIGH: "#ef4444", MEDIUM: "#f59e0b", LOW: "#10b981" };
+const TYPE_COLORS = {
+  airstrike: "#ef4444", missile: "#f97316", explosion: "#f59e0b",
+  clash: "#eab308", threat: "#a855f7", diplomatic: "#3b82f6",
+  cyberattack: "#06b6d4", naval: "#10b981", other: "#64748b"
+};
 const TYPE_EMOJIS = {
   airstrike: "✈️", missile: "🚀", explosion: "💥", clash: "⚔️",
   threat: "⚠️", diplomatic: "🤝", cyberattack: "💻", naval: "🚢", other: "📍"
 };
 
+// --- Data builders ---
+
 function buildTimelineData(events) {
-  // Group by day (last 14 days)
   const days = {};
   const now = Date.now();
   for (let i = 13; i >= 0; i--) {
@@ -41,36 +47,186 @@ function buildRegionData(events) {
     map[r].count++;
     if (e.severity === "HIGH") map[r].high++;
   });
-  return Object.values(map)
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 5);
+  return Object.values(map).sort((a, b) => b.count - a.count).slice(0, 5);
 }
 
-function buildTypeData(events) {
-  const map = {};
+// Monthly heatmap data: regions × months (last 6 months)
+function buildHeatmapData(events) {
+  const now = new Date();
+  const months = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push({ key: `${d.getFullYear()}-${d.getMonth()}`, label: d.toLocaleString("default", { month: "short" }) });
+  }
+
+  const regionSet = new Set();
+  events.forEach((e) => { if (e.country || e.region) regionSet.add(e.country || e.region); });
+  const topRegions = buildRegionData(events).map((r) => r.region);
+
+  const grid = {}; // region -> { monthKey: count }
+  topRegions.forEach((r) => { grid[r] = {}; months.forEach((m) => { grid[r][m.key] = 0; }); });
+
   events.forEach((e) => {
-    const t = e.event_type || "other";
-    map[t] = (map[t] || 0) + 1;
+    if (!e.created_date) return;
+    const r = e.country || e.region;
+    if (!r || !grid[r]) return;
+    const d = new Date(e.created_date);
+    const key = `${d.getFullYear()}-${d.getMonth()}`;
+    if (grid[r][key] !== undefined) grid[r][key]++;
   });
-  return Object.entries(map)
-    .map(([type, count]) => ({ type, count }))
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 6);
+
+  return { months, regions: topRegions, grid };
 }
 
-const CustomTooltip = ({ active, payload, label }) => {
+// 30-day trend per event type
+function buildTypeTrendData(events) {
+  const allTypes = [...new Set(events.map((e) => e.event_type || "other"))].slice(0, 5);
+  const now = Date.now();
+  const weeks = [];
+  for (let i = 3; i >= 0; i--) {
+    const d = new Date(now - i * 7 * 86400000);
+    weeks.push({ label: `W-${i === 0 ? "now" : i}`, start: now - (i + 1) * 7 * 86400000, end: now - i * 7 * 86400000 });
+  }
+
+  return weeks.map((w) => {
+    const row = { week: w.label };
+    allTypes.forEach((t) => {
+      row[t] = events.filter((e) => {
+        const ts = e.created_date ? new Date(e.created_date).getTime() : 0;
+        return (e.event_type || "other") === t && ts >= w.start && ts < w.end;
+      }).length;
+    });
+    return row;
+  });
+}
+
+// --- Sub-components ---
+
+const DarkTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
   return (
     <div style={{ background: "#0f1520", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 6, padding: "6px 10px", fontSize: 10 }}>
       <div style={{ color: "#94a3b8", marginBottom: 4 }}>{label}</div>
       {payload.map((p) => (
-        <div key={p.name} style={{ color: SEV_COLOR[p.name] || "#60a5fa", display: "flex", gap: 4 }}>
+        <div key={p.name} style={{ color: SEV_COLOR[p.name] || TYPE_COLORS[p.name] || "#60a5fa", display: "flex", gap: 6 }}>
           <span>{p.name}:</span><span style={{ fontWeight: 700 }}>{p.value}</span>
         </div>
       ))}
     </div>
   );
 };
+
+function RegionHeatmap({ events }) {
+  const { months, regions, grid } = useMemo(() => buildHeatmapData(events), [events]);
+  if (!regions.length) return null;
+
+  const maxVal = Math.max(1, ...regions.flatMap((r) => months.map((m) => grid[r][m.key])));
+
+  const getColor = (val) => {
+    if (val === 0) return "rgba(255,255,255,0.03)";
+    const intensity = val / maxVal;
+    if (intensity > 0.7) return `rgba(239,68,68,${0.3 + intensity * 0.6})`;
+    if (intensity > 0.4) return `rgba(245,158,11,${0.3 + intensity * 0.5})`;
+    return `rgba(59,130,246,${0.2 + intensity * 0.5})`;
+  };
+
+  return (
+    <div>
+      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
+        <Grid3x3 style={{ width: 12, height: 12, color: "#475569" }} />
+        <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.1em", color: "#475569", textTransform: "uppercase" }}>Region Heatmap — Past 6 Months</span>
+      </div>
+      <div style={{ overflowX: "auto" }}>
+        <table style={{ width: "100%", borderCollapse: "separate", borderSpacing: 2 }}>
+          <thead>
+            <tr>
+              <td style={{ fontSize: 8, color: "#334155", paddingBottom: 3, width: 60 }} />
+              {months.map((m) => (
+                <td key={m.key} style={{ fontSize: 8, color: "#475569", textAlign: "center", paddingBottom: 3, fontWeight: 600 }}>{m.label}</td>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {regions.map((r) => (
+              <tr key={r}>
+                <td style={{ fontSize: 9, color: "#64748b", paddingRight: 4, whiteSpace: "nowrap", maxWidth: 64, overflow: "hidden", textOverflow: "ellipsis" }} title={r}>{r}</td>
+                {months.map((m) => {
+                  const val = grid[r][m.key];
+                  return (
+                    <td key={m.key} title={`${r} · ${m.label}: ${val} events`} style={{
+                      background: getColor(val),
+                      borderRadius: 3,
+                      height: 16,
+                      width: 28,
+                      textAlign: "center",
+                      fontSize: 8,
+                      color: val > 0 ? "rgba(255,255,255,0.7)" : "transparent",
+                      fontWeight: 700,
+                      border: "1px solid rgba(255,255,255,0.04)",
+                      cursor: "default",
+                    }}>{val || ""}</td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {/* Legend */}
+        <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 5 }}>
+          <span style={{ fontSize: 8, color: "#334155" }}>Low</span>
+          {["rgba(59,130,246,0.4)", "rgba(245,158,11,0.5)", "rgba(239,68,68,0.6)", "rgba(239,68,68,0.9)"].map((c, i) => (
+            <div key={i} style={{ width: 14, height: 8, borderRadius: 2, background: c }} />
+          ))}
+          <span style={{ fontSize: 8, color: "#334155" }}>High</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TypeTrendLines({ events }) {
+  const allTypes = useMemo(() => [...new Set(events.map((e) => e.event_type || "other"))].slice(0, 5), [events]);
+  const data = useMemo(() => buildTypeTrendData(events), [events]);
+  if (!allTypes.length) return null;
+
+  return (
+    <div>
+      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
+        <TrendingUp style={{ width: 12, height: 12, color: "#475569" }} />
+        <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.1em", color: "#475569", textTransform: "uppercase" }}>Event Type Trends — 4 Weeks</span>
+      </div>
+      <ResponsiveContainer width="100%" height={80}>
+        <LineChart data={data} margin={{ top: 2, right: 4, left: -24, bottom: 0 }}>
+          <XAxis dataKey="week" tick={{ fontSize: 8, fill: "#334155" }} tickLine={false} axisLine={false} />
+          <YAxis tick={{ fontSize: 8, fill: "#334155" }} tickLine={false} axisLine={false} allowDecimals={false} />
+          <Tooltip content={<DarkTooltip />} />
+          {allTypes.map((t) => (
+            <Line
+              key={t}
+              type="monotone"
+              dataKey={t}
+              stroke={TYPE_COLORS[t] || "#64748b"}
+              strokeWidth={1.5}
+              dot={{ r: 2, fill: TYPE_COLORS[t] || "#64748b" }}
+              activeDot={{ r: 3 }}
+            />
+          ))}
+        </LineChart>
+      </ResponsiveContainer>
+      {/* Type legend */}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 3 }}>
+        {allTypes.map((t) => (
+          <div key={t} style={{ display: "flex", alignItems: "center", gap: 3 }}>
+            <div style={{ width: 8, height: 2, borderRadius: 1, background: TYPE_COLORS[t] || "#64748b" }} />
+            <span style={{ fontSize: 8, color: "#475569", textTransform: "capitalize" }}>{TYPE_EMOJIS[t]} {t}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// --- Main panel ---
 
 export default function TrendAnalysisPanel({ events }) {
   const [expanded, setExpanded] = useState(false);
@@ -79,7 +235,6 @@ export default function TrendAnalysisPanel({ events }) {
 
   const timelineData = useMemo(() => buildTimelineData(events), [events]);
   const regionData = useMemo(() => buildRegionData(events), [events]);
-  const typeData = useMemo(() => buildTypeData(events), [events]);
 
   const escalationRate = useMemo(() => {
     if (!events.length) return 0;
@@ -109,7 +264,6 @@ export default function TrendAnalysisPanel({ events }) {
 
   return (
     <div className="border-b border-white/[0.05]">
-      {/* Header */}
       <div
         className="flex items-center gap-2 p-3 cursor-pointer hover:bg-white/[0.02] transition-colors"
         onClick={() => setExpanded((v) => !v)}
@@ -131,7 +285,7 @@ export default function TrendAnalysisPanel({ events }) {
       </div>
 
       {expanded && (
-        <div className="px-3 pb-3 space-y-3">
+        <div className="px-3 pb-3 space-y-4">
 
           {/* Stats row */}
           <div className="grid grid-cols-3 gap-1.5">
@@ -147,7 +301,7 @@ export default function TrendAnalysisPanel({ events }) {
             ))}
           </div>
 
-          {/* 14-day timeline */}
+          {/* 14-day activity */}
           <div>
             <div className="flex items-center gap-1.5 mb-1.5">
               <BarChart2 className="w-3 h-3 text-slate-500" />
@@ -167,12 +321,18 @@ export default function TrendAnalysisPanel({ events }) {
                 </defs>
                 <XAxis dataKey="date" tick={{ fontSize: 8, fill: "#334155" }} tickLine={false} axisLine={false} interval={3} />
                 <YAxis tick={{ fontSize: 8, fill: "#334155" }} tickLine={false} axisLine={false} allowDecimals={false} />
-                <Tooltip content={<CustomTooltip />} />
+                <Tooltip content={<DarkTooltip />} />
                 <Area type="monotone" dataKey="HIGH" stroke="#ef4444" strokeWidth={1.5} fill="url(#highGrad)" dot={false} />
                 <Area type="monotone" dataKey="MEDIUM" stroke="#f59e0b" strokeWidth={1} fill="url(#medGrad)" dot={false} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
+
+          {/* Region heatmap */}
+          <RegionHeatmap events={events} />
+
+          {/* Type trend lines */}
+          <TypeTrendLines events={events} />
 
           {/* Top regions bar chart */}
           {regionData.length > 0 && (
@@ -181,13 +341,14 @@ export default function TrendAnalysisPanel({ events }) {
                 <MapPin className="w-3 h-3 text-slate-500" />
                 <span className="text-[9px] font-bold tracking-widest text-slate-500 uppercase">Top Hotspots</span>
               </div>
-              <ResponsiveContainer width="100%" height={72}>
+              <ResponsiveContainer width="100%" height={Math.max(60, regionData.length * 18)}>
                 <BarChart data={regionData} layout="vertical" margin={{ top: 0, right: 4, left: 0, bottom: 0 }}>
                   <XAxis type="number" tick={{ fontSize: 8, fill: "#334155" }} tickLine={false} axisLine={false} />
                   <YAxis type="category" dataKey="region" tick={{ fontSize: 9, fill: "#64748b" }} tickLine={false} axisLine={false} width={70} />
                   <Tooltip content={({ active, payload }) => active && payload?.length ? (
                     <div style={{ background: "#0f1520", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 6, padding: "5px 8px", fontSize: 10, color: "#94a3b8" }}>
                       {payload[0]?.payload?.region}: <strong style={{ color: "#f1f5f9" }}>{payload[0]?.value}</strong> events
+                      {payload[0]?.payload?.high > 0 && <div style={{ color: "#ef4444" }}>{payload[0]?.payload?.high} HIGH severity</div>}
                     </div>
                   ) : null} />
                   <Bar dataKey="count" radius={[0, 3, 3, 0]}>
@@ -200,26 +361,7 @@ export default function TrendAnalysisPanel({ events }) {
             </div>
           )}
 
-          {/* Event types */}
-          {typeData.length > 0 && (
-            <div>
-              <div className="flex items-center gap-1.5 mb-1.5">
-                <Flame className="w-3 h-3 text-slate-500" />
-                <span className="text-[9px] font-bold tracking-widest text-slate-500 uppercase">Event Types</span>
-              </div>
-              <div className="flex flex-wrap gap-1">
-                {typeData.map(({ type, count }) => (
-                  <div key={type} style={{ display: "flex", alignItems: "center", gap: 4, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 4, padding: "3px 7px" }}>
-                    <span style={{ fontSize: 10 }}>{TYPE_EMOJIS[type] || "📍"}</span>
-                    <span style={{ fontSize: 9, color: "#64748b", textTransform: "capitalize" }}>{type}</span>
-                    <span style={{ fontSize: 10, fontWeight: 700, color: "#94a3b8", fontFamily: "monospace" }}>{count}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* AI Insights */}
+          {/* AI Predictive Insights */}
           {(loading || aiInsights) && (
             <div style={{ background: "rgba(147,51,234,0.05)", border: "1px solid rgba(147,51,234,0.2)", borderRadius: 6, padding: "8px 10px" }}>
               <div className="flex items-center gap-1.5 mb-2">
