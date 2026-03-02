@@ -18,11 +18,12 @@ export default function MarketTickerPanel() {
   const [prices, setPrices] = useState({});
   const [loading, setLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(null);
+  const [isLiveMode, setIsLiveMode] = useState(false);
 
   const fetchPrices = async () => {
     setLoading(true);
     const result = await base44.integrations.Core.InvokeLLM({
-      prompt: `You are a financial data provider. Return the latest approximate market prices for these assets as of today (${new Date().toISOString().slice(0,10)}). Use your best knowledge of recent market data.\n\nAssets: Apple (AAPL), Microsoft (MSFT), NVIDIA (NVDA), Tesla (TSLA), Amazon (AMZN), Gold per troy oz (XAU), Silver per troy oz (XAG), WTI Crude Oil per barrel (OIL).\n\nFor each, provide price in USD and an estimated 1-day percent change.`,
+      prompt: `You are a real-time financial data provider. Return the LATEST current market prices for these assets RIGHT NOW at this exact moment (${new Date().toISOString()}). Use live market data from the internet.\n\nAssets: Apple (AAPL), Microsoft (MSFT), NVIDIA (NVDA), Tesla (TSLA), Amazon (AMZN), Gold per troy oz (XAU), Silver per troy oz (XAG), WTI Crude Oil per barrel (OIL).\n\nFor each, provide the current price in USD and the current 1-day percent change. Be precise with real-time values.`,
       add_context_from_internet: true,
       response_json_schema: {
         type: "object",
@@ -50,7 +51,20 @@ export default function MarketTickerPanel() {
   };
 
   useEffect(() => {
-    if (expanded && Object.keys(prices).length === 0) fetchPrices();
+    if (!expanded || !isLiveMode) return;
+
+    fetchPrices();
+
+    // Auto-refresh every 30 seconds in live mode
+    const interval = setInterval(() => {
+      fetchPrices();
+    }, 30 * 1000);
+
+    return () => clearInterval(interval);
+  }, [expanded, isLiveMode]);
+
+  useEffect(() => {
+    if (expanded && !isLiveMode && Object.keys(prices).length === 0) fetchPrices();
   }, [expanded]);
 
   const stocks = SYMBOLS.filter((s) => s.type === "stock");
@@ -60,14 +74,30 @@ export default function MarketTickerPanel() {
     const data = prices[item.symbol];
     const up = data?.change_pct >= 0;
     return (
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "4px 0", borderBottom: "1px solid rgba(255,255,255,0.03)" }}>
+      <div style={{ 
+        display: "flex", 
+        alignItems: "center", 
+        justifyContent: "space-between", 
+        padding: "6px 4px", 
+        borderBottom: "1px solid rgba(255,255,255,0.03)",
+        background: isLiveMode ? "rgba(255,255,255,0.01)" : "transparent",
+        borderRadius: 3
+      }}>
         <div>
           <span style={{ fontSize: 10, fontWeight: 600, color: "#cbd5e1" }}>{item.symbol}</span>
           <span style={{ fontSize: 9, color: "#475569", marginLeft: 5 }}>{item.label}</span>
         </div>
         {data ? (
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <span style={{ fontSize: 10, fontWeight: 700, color: "#f1f5f9", fontFamily: "monospace" }}>
+            <span style={{ 
+              fontSize: 10, 
+              fontWeight: 700, 
+              color: "#f1f5f9", 
+              fontFamily: "monospace",
+              background: isLiveMode ? "rgba(16,185,129,0.1)" : "transparent",
+              padding: isLiveMode ? "2px 4px" : "0",
+              borderRadius: 2
+            }}>
               ${data.price?.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
             <div style={{ display: "flex", alignItems: "center", gap: 2, color: up ? "#10b981" : "#ef4444" }}>
@@ -90,19 +120,41 @@ export default function MarketTickerPanel() {
       >
         <BarChart2 className="w-3.5 h-3.5 text-emerald-400" />
         <span className="text-[11px] font-bold tracking-widest text-slate-300 uppercase">Markets</span>
+        {isLiveMode && (
+          <span style={{ fontSize: 7, background: "rgba(16,185,129,0.2)", color: "#10b981", border: "1px solid rgba(16,185,129,0.3)", borderRadius: 2, padding: "1px 4px", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase" }}>
+            ● LIVE
+          </span>
+        )}
         {lastUpdated && (
-          <span style={{ fontSize: 8, color: "#334155", marginLeft: 2 }}>
+          <span style={{ fontSize: 8, color: "#334155", marginLeft: isLiveMode ? 0 : 2 }}>
             {lastUpdated.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
           </span>
         )}
         <div className="ml-auto flex items-center gap-2">
           {expanded && (
-            <button
-              onClick={(e) => { e.stopPropagation(); fetchPrices(); }}
-              style={{ fontSize: 9, color: "#10b981", background: "none", border: "none", cursor: "pointer" }}
-            >
-              ↻ Refresh
-            </button>
+            <>
+              <button
+                onClick={(e) => { e.stopPropagation(); setIsLiveMode((v) => !v); }}
+                style={{ 
+                  fontSize: 9, 
+                  color: isLiveMode ? "#10b981" : "#64748b", 
+                  background: "none", 
+                  border: "none", 
+                  cursor: "pointer",
+                  fontWeight: isLiveMode ? 700 : 400
+                }}
+              >
+                {isLiveMode ? "◉ Live" : "○ Manual"}
+              </button>
+              {!isLiveMode && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); fetchPrices(); }}
+                  style={{ fontSize: 9, color: "#10b981", background: "none", border: "none", cursor: "pointer" }}
+                >
+                  ↻ Refresh
+                </button>
+              )}
+            </>
           )}
           {expanded ? <ChevronUp className="w-3 h-3 text-slate-500" /> : <ChevronDown className="w-3 h-3 text-slate-500" />}
         </div>
@@ -113,7 +165,7 @@ export default function MarketTickerPanel() {
           {loading && Object.keys(prices).length === 0 ? (
             <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 0", fontSize: 10, color: "#475569" }}>
               <div style={{ width: 10, height: 10, border: "1.5px solid #10b981", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
-              Fetching live market data...
+              Fetching real-time market data...
             </div>
           ) : (
             <>
@@ -123,7 +175,7 @@ export default function MarketTickerPanel() {
               {commodities.map((s) => <PriceRow key={s.symbol} item={s} />)}
               {lastUpdated && (
                 <p style={{ fontSize: 8, color: "#1e293b", marginTop: 6, textAlign: "right" }}>
-                  AI-sourced · approx. values
+                  {isLiveMode ? "AI real-time powered · auto-refresh 30s" : "AI-sourced · approx. values"}
                 </p>
               )}
             </>
