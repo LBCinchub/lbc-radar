@@ -99,6 +99,21 @@ export const T = {
     markEscalation: "Mark as Escalation",
     saving: "Saving...",
     logEventBtn: "Log Event",
+    // Status labels
+    statusChecking: "Checking...",
+    statusVerified: "AI Verified",
+    statusUnverified: "Unverified",
+    statusFalse: "False Info",
+    // Event type labels
+    typeAirstrike: "Airstrike",
+    typeMissile: "Missile Attack",
+    typeExplosion: "Explosion",
+    typeClash: "Armed Clash",
+    typeThreat: "Threat",
+    typeDiplomatic: "Diplomatic",
+    typeCyberattack: "Cyberattack",
+    typeNaval: "Naval Incident",
+    typeOther: "Incident",
   },
   ar: {
     appSubtitle: "استخبارات النزاعات العالمية",
