@@ -94,7 +94,7 @@ export default function PredictiveAlertToast({ prediction, onClose, onLocate }) 
           style={{ width: "100%", fontSize: 10, fontWeight: 600, color: c.text, background: c.bg, border: `1px solid ${c.border}`, borderRadius: 4, padding: "5px 8px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 4 }}
         >
           <MapPin style={{ width: 10, height: 10 }} />
-          View Related Event
+          {t.viewRelatedEvent || "View Related Event"}
         </button>
       )}
     </div>
