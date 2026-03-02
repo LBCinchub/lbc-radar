@@ -1,0 +1,137 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-primary: #080b12;
+  --bg-secondary: #0d1117;
+  --bg-panel: #0f1520;
+  --bg-card: #111827;
+  --border-glow: rgba(220, 38, 38, 0.3);
+  --accent-red: #dc2626;
+  --accent-red-bright: #ef4444;
+  --accent-amber: #f59e0b;
+  --accent-green: #10b981;
+  --accent-blue: #3b82f6;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #475569;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  overflow-x: hidden;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg-secondary); }
+::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent-red); }
+
+/* Pulse animations */
+@keyframes pulse-red {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4); }
+  50% { box-shadow: 0 0 0 8px rgba(220, 38, 38, 0); }
+}
+
+@keyframes pulse-amber {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
+  50% { box-shadow: 0 0 0 8px rgba(245, 158, 11, 0); }
+}
+
+@keyframes scanline {
+  0% { top: -10%; }
+  100% { top: 110%; }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes glitch {
+  0% { clip-path: inset(40% 0 61% 0); transform: skew(0.3deg); }
+  20% { clip-path: inset(92% 0 1% 0); transform: skew(0.7deg); }
+  40% { clip-path: inset(43% 0 1% 0); transform: skew(0.1deg); }
+  60% { clip-path: inset(25% 0 58% 0); transform: skew(0.5deg); }
+  80% { clip-path: inset(54% 0 7% 0); transform: skew(0.2deg); }
+  100% { clip-path: inset(58% 0 43% 0); transform: skew(0.4deg); }
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.animate-fade-in-up { animation: fadeInUp 0.4s ease-out forwards; }
+.animate-blink { animation: blink 1.5s ease-in-out infinite; }
+
+.panel-glass {
+  background: rgba(15, 21, 32, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.severity-high {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.severity-medium {
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.1);
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.severity-low {
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.dot-high {
+  background: #ef4444;
+  animation: pulse-red 2s infinite;
+}
+
+.dot-medium {
+  background: #f59e0b;
+  animation: pulse-amber 2s infinite;
+}
+
+.dot-low {
+  background: #10b981;
+}
+
+.radar-grid {
+  background-image: 
+    linear-gradient(rgba(220, 38, 38, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(220, 38, 38, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.text-glow-red {
+  text-shadow: 0 0 20px rgba(220, 38, 38, 0.5);
+}
+
+.border-glow-red {
+  box-shadow: 0 0 20px rgba(220, 38, 38, 0.15), inset 0 0 20px rgba(220, 38, 38, 0.05);
+}
+
+/* Map container */
+.leaflet-container {
+  background: #050810 !important;
+  font-family: 'Inter', sans-serif;
+}
+
+.leaflet-tile-pane { filter: saturate(0.2) brightness(0.4) hue-rotate(200deg); }
+.leaflet-control-zoom { display: none !important; }
+.leaflet-control-attribution { display: none !important; }
