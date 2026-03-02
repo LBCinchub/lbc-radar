@@ -6,6 +6,7 @@ import RadarMap from "../components/radar/RadarMap";
 import EventDetailPanel from "../components/radar/EventDetailPanel";
 import SmartDigestPanel from "../components/radar/SmartDigestPanel";
 import TrendAnalysisPanel from "../components/radar/TrendAnalysisPanel";
+import NewsFeedPanel from "../components/radar/NewsFeedPanel";
 import AddEventModal from "../components/radar/AddEventModal";
 import { AlertStack } from "../components/radar/AlertNotificationStack";
 
