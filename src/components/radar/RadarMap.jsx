@@ -241,6 +241,17 @@ export default function RadarMap({ events, selectedEvent, onSelectEvent, correla
         <EventMarkers events={events} selectedEvent={selectedEvent} onSelectEvent={onSelectEvent} geofencedEventIds={geofencedEventIds} />
       </MapContainer>
 
+      {/* Geofence Manager UI */}
+      <GeofenceManager
+        zones={zones || []}
+        onAdd={null}
+        onDelete={onDeleteZone}
+        onToggle={onToggleZone}
+        isDrawing={isDrawing}
+        onStartDraw={onStartDraw}
+        onCancelDraw={onCancelDraw}
+      />
+
       {/* Corner brackets */}
       <div style={{ position:"absolute", top:10, left:10, width:20, height:20, borderTop:"2px solid rgba(220,38,38,0.5)", borderLeft:"2px solid rgba(220,38,38,0.5)", pointerEvents:"none", zIndex:500 }} />
       <div style={{ position:"absolute", top:10, right:10, width:20, height:20, borderTop:"2px solid rgba(220,38,38,0.5)", borderRight:"2px solid rgba(220,38,38,0.5)", pointerEvents:"none", zIndex:500 }} />
