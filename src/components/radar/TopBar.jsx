@@ -69,7 +69,7 @@ export default function TopBar({ eventCount, onAddEvent }) {
             {LANGUAGES[lang]?.label}
           </button>
           {showLangMenu && (
-            <div className="absolute bg-[#0d1117] border border-white/[0.08] rounded-lg shadow-2xl overflow-hidden z-[9999] min-w-[150px] top-full mt-1 right-0">
+            <div className="absolute bg-[#0d1117] border border-white/[0.08] rounded-lg shadow-2xl overflow-hidden z-50 min-w-[150px] top-full mt-1 right-0">
               {Object.entries(LANGUAGES).map(([code, info]) => (
                 <button
                   key={code}
