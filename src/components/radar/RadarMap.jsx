@@ -179,7 +179,7 @@ function FlyTo({ event }) {
   return null;
 }
 
-export default function RadarMap({ events, selectedEvent, onSelectEvent }) {
+export default function RadarMap({ events, selectedEvent, onSelectEvent, correlationGroups }) {
   return (
     <div style={{ position: "relative", width: "100%", height: "100%" }}>
       <style>{`
