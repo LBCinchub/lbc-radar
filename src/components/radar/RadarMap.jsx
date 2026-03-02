@@ -22,8 +22,8 @@ export default function RadarMap({ events, selectedEvent, onSelectEvent }) {
 
   return (
     <div className="relative w-full h-full">
-      {/* Grid overlay */}
-      <div className="absolute inset-0 radar-grid pointer-events-none z-[400]" />
+      {/* Grid overlay - below map controls */}
+      <div className="absolute inset-0 radar-grid pointer-events-none z-[1]" />
 
       <MapContainer
         center={[25, 30]}
@@ -76,8 +76,16 @@ export default function RadarMap({ events, selectedEvent, onSelectEvent }) {
       <div className="absolute bottom-3 left-3 w-6 h-6 border-b-2 border-l-2 border-red-500/40 pointer-events-none z-20" />
       <div className="absolute bottom-3 right-3 w-6 h-6 border-b-2 border-r-2 border-red-500/40 pointer-events-none z-20" />
 
+      {/* Powered by AI badge */}
+      <div className="absolute top-3 left-1/2 -translate-x-1/2 z-[500] pointer-events-none">
+        <div className="flex items-center gap-1.5 bg-black/70 backdrop-blur px-3 py-1 rounded-full border border-blue-500/30">
+          <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+          <span className="text-[10px] text-blue-300 font-bold tracking-widest uppercase">Powered by AI</span>
+        </div>
+      </div>
+
       {/* Event counter overlay */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex gap-3 pointer-events-none">
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-[500] flex gap-3 pointer-events-none">
         {["HIGH", "MEDIUM", "LOW"].map((s) => {
           const count = events.filter((e) => e.severity === s).length;
           return (
