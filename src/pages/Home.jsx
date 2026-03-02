@@ -74,6 +74,14 @@ export default function Home() {
         {/* Left panel - Feed */}
         <aside className="w-[300px] shrink-0 panel-glass border-r border-white/[0.05] flex flex-col overflow-hidden hidden md:flex">
           <SmartDigestPanel events={events} />
+          <CorrelationPanel
+            events={events}
+            onSelectEventById={(id) => {
+              const ev = events.find((e) => e.id === id);
+              if (ev) setSelectedEvent(ev);
+            }}
+            onGroupsChange={setCorrelationGroups}
+          />
           <TrendAnalysisPanel events={events} />
           <NewsFeedPanel />
           <MarketTickerPanel />
