@@ -53,8 +53,8 @@ export default function RadarMap({ events, selectedEvent, onSelectEvent }) {
       `}</style>
 
       <MapContainer
-        center={[25, 20]}
-        zoom={3}
+        center={[20, 15]}
+        zoom={2}
         style={{ width: "100%", height: "100%", background: "#050810" }}
         zoomControl={false}
         attributionControl={false}
