@@ -26,6 +26,36 @@ async function translateNews(base44, headline, content, targetLangs) {
   return translations;
 }
 
+async function analyzeSentiment(base44, headline, content) {
+  const result = await base44.integrations.Core.InvokeLLM({
+    prompt: `Analyze the market sentiment of this news article. Consider whether it's bullish or bearish for markets in general.\n\nHeadline: ${headline}\n\nContent: ${content}\n\nRespond with sentiment level and confidence.`,
+    response_json_schema: {
+      type: "object",
+      properties: {
+        sentiment: { type: "string", enum: ["very_positive", "positive", "neutral", "negative", "very_negative"], description: "Market sentiment" },
+        confidence: { type: "number", description: "Confidence score 0.0-1.0" },
+        mentioned_assets: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              symbol: { type: "string" },
+              type: { type: "string", enum: ["stock", "commodity", "crypto"] }
+            }
+          },
+          description: "Assets mentioned in the article"
+        }
+      }
+    }
+  });
+  
+  return {
+    sentiment: result.sentiment || 'neutral',
+    sentiment_confidence: result.confidence || 0.5,
+    mentioned_assets: result.mentioned_assets || []
+  };
+}
+
 function getLangName(code) {
   const names = {
     en: 'English',
@@ -119,8 +149,15 @@ Deno.serve(async (req) => {
 
     for (const item of items.slice(0, 10)) {
       const trans = await translateNews(base44, item.headline, item.content, langs);
+      const sentiment = await analyzeSentiment(base44, item.headline, item.content);
       
-      const translatedItem = { ...item, verification_status: 'pending' };
+      const translatedItem = {
+        ...item,
+        verification_status: 'pending',
+        sentiment: sentiment.sentiment,
+        sentiment_confidence: sentiment.sentiment_confidence,
+        mentioned_assets: sentiment.mentioned_assets
+      };
       
       langs.forEach(lang => {
         translatedItem[`headline_${lang}`] = trans.headline[lang];
