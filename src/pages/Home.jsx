@@ -68,6 +68,7 @@ export default function Home() {
           <SmartDigestPanel events={events} />
           <TrendAnalysisPanel events={events} />
           <NewsFeedPanel />
+          <MarketTickerPanel />
           <div className="flex-1 overflow-hidden">
             <PulseFeed
               events={events}
