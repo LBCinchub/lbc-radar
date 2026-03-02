@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { BrainCircuit, X, MapPin, TrendingUp, Clock } from "lucide-react";
+import { useLang } from "../LanguageContext";
 
 const RISK_COLORS = {
   CRITICAL: { border: "rgba(239,68,68,0.6)", bg: "rgba(239,68,68,0.12)", text: "#ef4444", glow: "rgba(239,68,68,0.2)" },
