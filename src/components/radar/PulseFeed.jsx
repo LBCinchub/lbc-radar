@@ -9,9 +9,25 @@ const FILTERS = [
   { label: "ESC", value: "escalation" },
 ];
 
-export default function PulseFeed({ events, onSelectEvent, selectedEvent }) {
+const FILTERS = [
+  { label: "ALL", value: "all" },
+  { label: "HIGH", value: "HIGH" },
+  { label: "MED", value: "MEDIUM" },
+  { label: "LOW", value: "LOW" },
+  { label: "ESC", value: "escalation" },
+];
+
+export default function PulseFeed({ events, onSelectEvent, selectedEvent, onRefresh }) {
   const [search, setSearch] = useState("");
   const [activeFilter, setActiveFilter] = useState("all");
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    if (!onRefresh) return;
+    setRefreshing(true);
+    await onRefresh();
+    setRefreshing(false);
+  };
 
   const filtered = events.filter((e) => {
     const matchSearch =
