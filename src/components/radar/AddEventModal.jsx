@@ -20,6 +20,7 @@ const COUNTRIES = [
 ];
 
 export default function AddEventModal({ onClose, onSave }) {
+  const { t } = useLang();
   const [form, setForm] = useState({
     title: "",
     summary: "",
@@ -85,7 +86,7 @@ export default function AddEventModal({ onClose, onSave }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
       <div className="w-full max-w-lg panel-glass rounded-xl border border-white/[0.08] border-glow-red overflow-hidden">
         <div className="flex items-center justify-between p-4 border-b border-white/[0.05]">
-          <h2 className="text-sm font-bold text-white tracking-wider uppercase">Log New Event</h2>
+          <h2 className="text-sm font-bold text-white tracking-wider uppercase">{t.logNewEvent}</h2>
           <button onClick={onClose} className="text-slate-500 hover:text-white transition-colors">
             <X className="w-4 h-4" />
           </button>
@@ -94,12 +95,12 @@ export default function AddEventModal({ onClose, onSave }) {
         <div className="p-4 space-y-3 max-h-[70vh] overflow-y-auto">
           {/* Title + AI */}
           <div>
-            <label className="text-[10px] text-slate-500 uppercase tracking-widest mb-1 block">Event Title *</label>
+            <label className="text-[10px] text-slate-500 uppercase tracking-widest mb-1 block">{t.eventTitle}</label>
             <div className="flex gap-2">
               <input
                 value={form.title}
                 onChange={(e) => set("title", e.target.value)}
-                placeholder="Describe the incident..."
+                placeholder={t.describeIncident}
                 className="flex-1 bg-slate-800/50 border border-white/[0.07] rounded text-xs text-slate-200 px-3 py-2 focus:outline-none focus:border-red-500/40 placeholder-slate-600"
               />
               <button
@@ -115,7 +116,7 @@ export default function AddEventModal({ onClose, onSave }) {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-[10px] text-slate-500 uppercase tracking-widest mb-1 block">Severity</label>
+              <label className="text-[10px] text-slate-500 uppercase tracking-widest mb-1 block">{t.severity}</label>
               <select
                 value={form.severity}
                 onChange={(e) => set("severity", e.target.value)}
@@ -127,7 +128,7 @@ export default function AddEventModal({ onClose, onSave }) {
               </select>
             </div>
             <div>
-              <label className="text-[10px] text-slate-500 uppercase tracking-widest mb-1 block">Event Type</label>
+              <label className="text-[10px] text-slate-500 uppercase tracking-widest mb-1 block">{t.eventType}</label>
               <select
                 value={form.event_type}
                 onChange={(e) => set("event_type", e.target.value)}
@@ -139,18 +140,18 @@ export default function AddEventModal({ onClose, onSave }) {
               </select>
             </div>
             <div>
-              <label className="text-[10px] text-slate-500 uppercase tracking-widest mb-1 block">Country</label>
+              <label className="text-[10px] text-slate-500 uppercase tracking-widest mb-1 block">{t.country}</label>
               <select
                 value={form.country}
                 onChange={(e) => handleCountryChange(e.target.value)}
                 className="w-full bg-slate-800/50 border border-white/[0.07] rounded text-xs text-slate-200 px-3 py-2 focus:outline-none"
               >
-                <option value="">Select...</option>
+                <option value="">{t.selectCountry}</option>
                 {COUNTRIES.map((c) => <option key={c.code} value={c.name}>{c.name}</option>)}
               </select>
             </div>
             <div>
-              <label className="text-[10px] text-slate-500 uppercase tracking-widest mb-1 block">Confidence %</label>
+              <label className="text-[10px] text-slate-500 uppercase tracking-widest mb-1 block">{t.confidencePct}</label>
               <input
                 type="number"
                 min="0" max="100"
@@ -162,22 +163,22 @@ export default function AddEventModal({ onClose, onSave }) {
           </div>
 
           <div>
-            <label className="text-[10px] text-slate-500 uppercase tracking-widest mb-1 block">Region / Location</label>
+            <label className="text-[10px] text-slate-500 uppercase tracking-widest mb-1 block">{t.regionLocation}</label>
             <input
               value={form.region}
               onChange={(e) => set("region", e.target.value)}
-              placeholder="e.g. Southern Beirut, Northern Gaza"
+              placeholder={t.regionPlaceholder}
               className="w-full bg-slate-800/50 border border-white/[0.07] rounded text-xs text-slate-200 px-3 py-2 focus:outline-none"
             />
           </div>
 
           <div>
-            <label className="text-[10px] text-slate-500 uppercase tracking-widest mb-1 block">Summary</label>
+            <label className="text-[10px] text-slate-500 uppercase tracking-widest mb-1 block">{t.summaryLabel}</label>
             <textarea
               value={form.summary}
               onChange={(e) => set("summary", e.target.value)}
               rows={3}
-              placeholder="Brief description of the event..."
+              placeholder={t.summaryPlaceholder}
               className="w-full bg-slate-800/50 border border-white/[0.07] rounded text-xs text-slate-200 px-3 py-2 focus:outline-none resize-none"
             />
           </div>
@@ -189,19 +190,19 @@ export default function AddEventModal({ onClose, onSave }) {
               onChange={(e) => set("is_escalation", e.target.checked)}
               className="w-3 h-3 accent-red-500"
             />
-            <span className="text-[11px] text-slate-400">Mark as Escalation</span>
+            <span className="text-[11px] text-slate-400">{t.markEscalation}</span>
           </label>
         </div>
 
         <div className="flex justify-end gap-2 p-4 border-t border-white/[0.05]">
-          <button onClick={onClose} className="px-4 py-2 text-xs text-slate-400 hover:text-white transition-colors">Cancel</button>
+          <button onClick={onClose} className="px-4 py-2 text-xs text-slate-400 hover:text-white transition-colors">{t.cancel}</button>
           <button
             onClick={handleSave}
             disabled={!form.title || saving}
             className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white text-xs font-bold rounded transition-all disabled:opacity-40 flex items-center gap-1.5"
           >
             {saving && <Loader2 className="w-3 h-3 animate-spin" />}
-            Log Event
+            {t.logEventBtn}
           </button>
         </div>
       </div>
