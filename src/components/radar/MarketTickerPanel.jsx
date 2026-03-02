@@ -11,6 +11,9 @@ const SYMBOLS = [
   { symbol: "XAU",   label: "Gold",      type: "commodity" },
   { symbol: "XAG",   label: "Silver",    type: "commodity" },
   { symbol: "OIL",   label: "Oil (WTI)", type: "commodity" },
+  { symbol: "BTC",   label: "Bitcoin",   type: "crypto" },
+  { symbol: "ETH",   label: "Ethereum",  type: "crypto" },
+  { symbol: "XRP",   label: "Ripple",    type: "crypto" },
 ];
 
 export default function MarketTickerPanel() {
@@ -56,6 +59,7 @@ export default function MarketTickerPanel() {
 
   const stocks = SYMBOLS.filter((s) => s.type === "stock");
   const commodities = SYMBOLS.filter((s) => s.type === "commodity");
+  const cryptos = SYMBOLS.filter((s) => s.type === "crypto");
 
   const PriceRow = ({ item }) => {
     const data = prices[item.symbol];
@@ -160,9 +164,11 @@ export default function MarketTickerPanel() {
               {stocks.map((s) => <PriceRow key={s.symbol} item={s} />)}
               <div style={{ fontSize: 8, fontWeight: 700, color: "#334155", letterSpacing: "0.1em", textTransform: "uppercase", marginTop: 8, marginBottom: 4 }}>Commodities</div>
               {commodities.map((s) => <PriceRow key={s.symbol} item={s} />)}
+              <div style={{ fontSize: 8, fontWeight: 700, color: "#334155", letterSpacing: "0.1em", textTransform: "uppercase", marginTop: 8, marginBottom: 4 }}>Cryptocurrencies</div>
+              {cryptos.map((s) => <PriceRow key={s.symbol} item={s} />)}
               {lastUpdated && (
                 <p style={{ fontSize: 8, color: "#1e293b", marginTop: 6, textAlign: "right" }}>
-                  {isLiveMode ? "AI real-time powered · auto-refresh 30s" : "AI-sourced · approx. values"}
+                  {isLiveMode ? "Finnhub + CoinGecko · auto-refresh 30s" : "Real-time data · Finnhub & CoinGecko"}
                 </p>
               )}
             </>
