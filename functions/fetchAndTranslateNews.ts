@@ -1,5 +1,45 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
+const SUPPORTED_LANGS = ['en', 'ar', 'fr', 'es', 'pt', 'ru', 'tr', 'fa'];
+
+async function translateNews(base44, headline, content, targetLangs) {
+  const translations = { headline: {}, content: {} };
+
+  for (const lang of targetLangs) {
+    if (lang === 'auto') continue;
+    
+    const result = await base44.integrations.Core.InvokeLLM({
+      prompt: `Detect the source language and translate the following news to ${getLangName(lang)}. Keep the same meaning and tone. Just provide the translation, no explanations.\n\nHeadline: ${headline}\n\nContent: ${content}`,
+      response_json_schema: {
+        type: "object",
+        properties: {
+          headline: { type: "string" },
+          content: { type: "string" }
+        }
+      }
+    });
+
+    translations.headline[`${lang}`] = result.headline || headline;
+    translations.content[`${lang}`] = result.content || content;
+  }
+
+  return translations;
+}
+
+function getLangName(code) {
+  const names = {
+    en: 'English',
+    ar: 'Arabic',
+    fr: 'French',
+    es: 'Spanish',
+    pt: 'Portuguese',
+    ru: 'Russian',
+    tr: 'Turkish',
+    fa: 'Farsi'
+  };
+  return names[code] || 'English';
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -8,6 +48,9 @@ Deno.serve(async (req) => {
     if (!user) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const { targetLanguages = ['en', 'ar'] } = await req.json().catch(() => ({}));
+    const langs = targetLanguages.filter(l => SUPPORTED_LANGS.includes(l));
 
     // Fetch RSS feed from @ShehabTelegram2
     const rssUrl = 'https://t.me/s/ShehabTelegram2/rss';
@@ -19,7 +62,7 @@ Deno.serve(async (req) => {
 
     const rssText = await rssResponse.text();
     
-    // Parse RSS feed (basic XML parsing)
+    // Parse RSS feed
     const itemRegex = /<item>([\s\S]*?)<\/item>/g;
     const items = [];
     let match;
@@ -32,7 +75,6 @@ Deno.serve(async (req) => {
       const descMatch = /<description><!\[CDATA\[([\s\S]*?)\]\]><\/description>/.exec(itemContent) ||
                        /<description>(.*?)<\/description>/.exec(itemContent);
       const linkMatch = /<link>(.*?)<\/link>/.exec(itemContent);
-      const pubDateMatch = /<pubDate>(.*?)<\/pubDate>/.exec(itemContent);
 
       if (titleMatch && descMatch) {
         items.push({
@@ -45,45 +87,21 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Translate each item to English and Arabic
     const translatedItems = [];
 
     for (const item of items.slice(0, 10)) {
-      // Translate to English
-      const enResult = await base44.integrations.Core.InvokeLLM({
-        prompt: `Translate the following Arabic news headline and content to English. Keep the same meaning and tone. Just provide the translation, no explanations.\n\nHeadline: ${item.headline}\n\nContent: ${item.content}`,
-        response_json_schema: {
-          type: "object",
-          properties: {
-            headline: { type: "string" },
-            content: { type: "string" }
-          }
-        }
+      const trans = await translateNews(base44, item.headline, item.content, langs);
+      
+      const translatedItem = { ...item, verification_status: 'pending' };
+      
+      langs.forEach(lang => {
+        translatedItem[`headline_${lang}`] = trans.headline[lang];
+        translatedItem[`content_${lang}`] = trans.content[lang];
       });
 
-      // Translate to Arabic (in case original is not Arabic)
-      const arResult = await base44.integrations.Core.InvokeLLM({
-        prompt: `Translate the following news headline and content to Arabic. Keep the same meaning and tone. Just provide the translation, no explanations.\n\nHeadline: ${item.headline}\n\nContent: ${item.content}`,
-        response_json_schema: {
-          type: "object",
-          properties: {
-            headline: { type: "string" },
-            content: { type: "string" }
-          }
-        }
-      });
-
-      translatedItems.push({
-        ...item,
-        headline_en: enResult.headline || item.headline,
-        content_en: enResult.content || item.content,
-        headline_ar: arResult.headline || item.headline,
-        content_ar: arResult.content || item.content,
-        verification_status: 'pending'
-      });
+      translatedItems.push(translatedItem);
     }
 
-    // Check for duplicates and save to database
     const existingPosts = await base44.entities.NewsPost.list('-created_date', 100);
     const existingHeadlines = new Set(existingPosts.map(p => p.headline));
 
