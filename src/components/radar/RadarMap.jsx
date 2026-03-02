@@ -218,6 +218,7 @@ export default function RadarMap({ events, selectedEvent, onSelectEvent, correla
         />
 
         {selectedEvent && <FlyTo event={selectedEvent} />}
+        <CorrelationLines events={events} correlationGroups={correlationGroups} />
         <ClusterLayer events={events} selectedEvent={selectedEvent} onSelectEvent={onSelectEvent} />
       </MapContainer>
 
