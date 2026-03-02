@@ -72,6 +72,12 @@ export default function Home() {
         if (event.data?.severity === "HIGH") {
           addAlert(event.data);
         }
+        // Check geofence zones
+        const geoHit = checkEventAgainstZones(event.data);
+        if (geoHit) {
+          const id = Date.now() + Math.random();
+          setGeofenceAlerts((prev) => [...prev.slice(-3), { id, event: geoHit.event, zoneName: geoHit.zone.name }]);
+        }
       } else if (event.type === "update") {
         setEvents((prev) => prev.map((e) => (e.id === event.id ? event.data : e)));
       } else if (event.type === "delete") {
