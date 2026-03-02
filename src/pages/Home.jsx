@@ -36,6 +36,9 @@ export default function Home() {
   useEffect(() => {
     loadEvents();
 
+    // Auto-refresh events every 2 minutes
+    const interval = setInterval(() => loadEvents(), 2 * 60 * 1000);
+
     // Subscribe to real-time updates
     const unsubscribe = base44.entities.ConflictEvent.subscribe((event) => {
       if (event.type === "create") {
