@@ -82,7 +82,7 @@ export default function PredictiveAlertToast({ prediction, onClose, onLocate }) 
         {prediction.confidence && (
           <div style={{ display: "flex", alignItems: "center", gap: 4, background: "rgba(255,255,255,0.04)", borderRadius: 4, padding: "3px 7px" }}>
             <TrendingUp style={{ width: 9, height: 9, color: c.text }} />
-            <span style={{ fontSize: 9, color: c.text, fontWeight: 700 }}>{prediction.confidence}% confidence</span>
+            <span style={{ fontSize: 9, color: c.text, fontWeight: 700 }}>{prediction.confidence}% {t.predictionConfidence || "confidence"}</span>
           </div>
         )}
       </div>
