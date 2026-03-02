@@ -192,7 +192,7 @@ export default function RadarMap({ events, selectedEvent, onSelectEvent, correla
       <div style={{ position:"absolute", top:10, left:"50%", transform:"translateX(-50%)", zIndex:500, pointerEvents:"none" }}>
         <div style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(0,0,0,0.7)", backdropFilter:"blur(8px)", padding:"4px 12px", borderRadius:20, border:"1px solid rgba(59,130,246,0.3)" }}>
           <span style={{ width:6, height:6, borderRadius:"50%", background:"#60a5fa" }} />
-          <span style={{ fontSize:10, color:"#93c5fd", fontWeight:700, letterSpacing:"0.1em", textTransform:"uppercase" }}>Powered by AI</span>
+          <span style={{ fontSize:10, color:"#93c5fd", fontWeight:700, letterSpacing:"0.1em", textTransform:"uppercase" }}>{t.poweredByAI}</span>
         </div>
       </div>
 
