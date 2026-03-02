@@ -118,6 +118,13 @@ export default function Home() {
           onSave={handleSaveEvent}
         />
       )}
+
+      {/* Critical alert notifications */}
+      <AlertStack
+        alerts={alerts}
+        onRemove={removeAlert}
+        onLocate={(event) => setSelectedEvent(event)}
+      />
     </div>
   );
 }
