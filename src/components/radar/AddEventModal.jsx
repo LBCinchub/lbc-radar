@@ -89,7 +89,7 @@ export default function AddEventModal({ onClose, onSave }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
       <div className="w-full max-w-lg panel-glass rounded-xl border border-white/[0.08] border-glow-red overflow-hidden">
         <div className="flex items-center justify-between p-4 border-b border-white/[0.05]">
           <h2 className="text-sm font-bold text-white tracking-wider uppercase">{t.logNewEvent}</h2>
