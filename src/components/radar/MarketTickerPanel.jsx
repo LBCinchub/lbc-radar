@@ -1,107 +1,35 @@
 import { useState, useEffect } from "react";
-import { TrendingUp, TrendingDown, ChevronDown, ChevronUp, BarChart2 } from "lucide-react";
+import { ChevronDown, ChevronUp, BarChart2, TrendingUp, TrendingDown } from "lucide-react";
 import { base44 } from "@/api/base44Client";
-
-const SYMBOLS = [
-  { symbol: "AAPL",  label: "Apple",     type: "stock" },
-  { symbol: "MSFT",  label: "Microsoft", type: "stock" },
-  { symbol: "NVDA",  label: "NVIDIA",    type: "stock" },
-  { symbol: "TSLA",  label: "Tesla",     type: "stock" },
-  { symbol: "AMZN",  label: "Amazon",    type: "stock" },
-  { symbol: "XAU",   label: "Gold",      type: "commodity" },
-  { symbol: "XAG",   label: "Silver",    type: "commodity" },
-  { symbol: "OIL",   label: "Oil (WTI)", type: "commodity" },
-  { symbol: "BTC",   label: "Bitcoin",   type: "crypto" },
-  { symbol: "ETH",   label: "Ethereum",  type: "crypto" },
-  { symbol: "XRP",   label: "Ripple",    type: "crypto" },
-];
 
 export default function MarketTickerPanel() {
   const [expanded, setExpanded] = useState(false);
-  const [prices, setPrices] = useState({});
+  const [news, setNews] = useState([]);
   const [loading, setLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(null);
-  const [isLiveMode, setIsLiveMode] = useState(false);
 
-  const fetchPrices = async () => {
+  const fetchMarketNews = async () => {
     setLoading(true);
     try {
-      const response = await base44.functions.invoke('getMarketPrices', {
-        symbols: SYMBOLS.map(s => s.symbol)
-      });
-
-      const map = {};
-      (response.data.prices || []).forEach((p) => { map[p.symbol] = p; });
-      setPrices(map);
+      const posts = await base44.entities.NewsPost.list('-created_date', 10);
+      const marketNews = posts.filter(post => 
+        post.mentioned_assets?.length > 0 || 
+        post.headline?.toLowerCase().includes('market') ||
+        post.headline?.toLowerCase().includes('stock') ||
+        post.headline?.toLowerCase().includes('crypto') ||
+        post.headline?.toLowerCase().includes('commodity')
+      );
+      setNews(marketNews.slice(0, 6));
       setLastUpdated(new Date());
     } catch (error) {
-      console.error('Failed to fetch prices:', error);
+      console.error('Failed to fetch market news:', error);
     }
     setLoading(false);
   };
 
   useEffect(() => {
-    if (!expanded || !isLiveMode) return;
-
-    fetchPrices();
-
-    // Auto-refresh every 30 seconds in live mode
-    const interval = setInterval(() => {
-      fetchPrices();
-    }, 30 * 1000);
-
-    return () => clearInterval(interval);
-  }, [expanded, isLiveMode]);
-
-  useEffect(() => {
-    if (expanded && !isLiveMode && Object.keys(prices).length === 0) fetchPrices();
+    if (expanded) fetchMarketNews();
   }, [expanded]);
-
-  const stocks = SYMBOLS.filter((s) => s.type === "stock");
-  const commodities = SYMBOLS.filter((s) => s.type === "commodity");
-  const cryptos = SYMBOLS.filter((s) => s.type === "crypto");
-
-  const PriceRow = ({ item }) => {
-    const data = prices[item.symbol];
-    const up = data?.change_pct >= 0;
-    return (
-      <div style={{ 
-        display: "flex", 
-        alignItems: "center", 
-        justifyContent: "space-between", 
-        padding: "6px 4px", 
-        borderBottom: "1px solid rgba(255,255,255,0.03)",
-        background: isLiveMode ? "rgba(255,255,255,0.01)" : "transparent",
-        borderRadius: 3
-      }}>
-        <div>
-          <span style={{ fontSize: 10, fontWeight: 600, color: "#cbd5e1" }}>{item.symbol}</span>
-          <span style={{ fontSize: 9, color: "#475569", marginLeft: 5 }}>{item.label}</span>
-        </div>
-        {data ? (
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <span style={{ 
-              fontSize: 10, 
-              fontWeight: 700, 
-              color: "#f1f5f9", 
-              fontFamily: "monospace",
-              background: isLiveMode ? "rgba(16,185,129,0.1)" : "transparent",
-              padding: isLiveMode ? "2px 4px" : "0",
-              borderRadius: 2
-            }}>
-              ${data.price?.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </span>
-            <div style={{ display: "flex", alignItems: "center", gap: 2, color: up ? "#10b981" : "#ef4444" }}>
-              {up ? <TrendingUp style={{ width: 9, height: 9 }} /> : <TrendingDown style={{ width: 9, height: 9 }} />}
-              <span style={{ fontSize: 9, fontWeight: 600 }}>{up ? "+" : ""}{parseFloat(data.change_pct).toFixed(2)}%</span>
-            </div>
-          </div>
-        ) : (
-          <span style={{ fontSize: 9, color: "#334155" }}>{loading ? "—" : "N/A"}</span>
-        )}
-      </div>
-    );
-  };
 
   return (
     <div className="border-b border-white/[0.05]">
