@@ -68,6 +68,50 @@ function makeTooltipContent(event) {
     </div>`;
 }
 
+function CorrelationLines({ events, correlationGroups }) {
+  const map = useMap();
+  const linesRef = useRef([]);
+
+  useEffect(() => {
+    // Remove old lines
+    linesRef.current.forEach((l) => map.removeLayer(l));
+    linesRef.current = [];
+
+    if (!correlationGroups || correlationGroups.length === 0) return;
+
+    const COLORS = ["#a78bfa", "#f59e0b", "#60a5fa", "#10b981", "#f472b6", "#fb923c"];
+    const eventMap = {};
+    events.forEach((e) => { if (e.latitude && e.longitude) eventMap[e.id] = e; });
+
+    correlationGroups.forEach((group, gi) => {
+      const ids = group.event_ids || [];
+      const color = COLORS[gi % COLORS.length];
+      // Draw lines between consecutive events in group
+      for (let i = 0; i < ids.length - 1; i++) {
+        const a = eventMap[ids[i]];
+        const b = eventMap[ids[i + 1]];
+        if (!a || !b) continue;
+        const line = L.polyline([[a.latitude, a.longitude], [b.latitude, b.longitude]], {
+          color,
+          weight: 1.5,
+          opacity: 0.45,
+          dashArray: "4 6",
+          interactive: false,
+        });
+        map.addLayer(line);
+        linesRef.current.push(line);
+      }
+    });
+
+    return () => {
+      linesRef.current.forEach((l) => map.removeLayer(l));
+      linesRef.current = [];
+    };
+  }, [correlationGroups, events]);
+
+  return null;
+}
+
 function ClusterLayer({ events, selectedEvent, onSelectEvent }) {
   const map = useMap();
   const clusterRef = useRef(null);
