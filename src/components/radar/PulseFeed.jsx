@@ -43,9 +43,14 @@ export default function PulseFeed({ events, onSelectEvent, selectedEvent, onRefr
         <div className="flex items-center gap-2 mb-3">
           <Radio className="w-3.5 h-3.5 text-red-500 animate-blink" />
           <span className="text-[11px] font-bold tracking-widest text-slate-300 uppercase">Pulse Feed</span>
-          <span className="ml-auto text-[10px] text-slate-600 font-mono bg-slate-800/50 px-1.5 py-0.5 rounded">
-            {events.length} events
-          </span>
+          <div className="ml-auto flex items-center gap-2">
+            <button onClick={handleRefresh} disabled={refreshing} title="Refresh events" className="text-slate-500 hover:text-slate-300 transition-colors">
+              <RefreshCw className={`w-3 h-3 ${refreshing ? "animate-spin text-red-400" : ""}`} />
+            </button>
+            <span className="text-[10px] text-slate-600 font-mono bg-slate-800/50 px-1.5 py-0.5 rounded">
+              {filtered.length}/{events.length}
+            </span>
+          </div>
         </div>
 
         {/* Search */}
