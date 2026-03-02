@@ -13,6 +13,7 @@ import AddEventModal from "../components/radar/AddEventModal";
 import { AlertStack } from "../components/radar/AlertNotificationStack";
 import PredictiveAlertEngine from "../components/radar/PredictiveAlertEngine";
 import PredictiveAlertToast from "../components/radar/PredictiveAlertToast";
+import { useLang } from "../components/LanguageContext";
 
 export default function Home() {
   const [events, setEvents] = useState([]);
