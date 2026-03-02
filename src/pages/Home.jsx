@@ -139,22 +139,28 @@ export default function Home() {
               <p className="text-xs text-slate-500 tracking-widest uppercase">{t.initializingRadar}</p>
             </div>
           ) : (
-            <RadarMap
-              events={events}
-              selectedEvent={selectedEvent}
-              onSelectEvent={setSelectedEvent}
-              correlationGroups={correlationGroups}
-              zones={geofence.zones}
-              isDrawing={geofence.isDrawing}
-              drawPoints={geofence.drawPoints}
-              onAddDrawPoint={geofence.addDrawPoint}
-              onFinishDraw={geofence.finishDraw}
-              onStartDraw={geofence.startDraw}
-              onCancelDraw={geofence.cancelDraw}
-              onDeleteZone={geofence.deleteZone}
-              onToggleZone={geofence.toggleZone}
-              geofencedEventIds={geofencedEventIds}
-            />
+            <>
+              <RadarMap
+                events={events}
+                selectedEvent={selectedEvent}
+                onSelectEvent={isDrawing ? undefined : setSelectedEvent}
+                correlationGroups={correlationGroups}
+                zones={geofence.zones}
+                isDrawing={geofence.isDrawing}
+                drawPoints={geofence.drawPoints}
+                onAddDrawPoint={geofence.addDrawPoint}
+                onFinishDraw={geofence.finishDraw}
+              />
+              <GeofenceManager
+                zones={geofence.zones}
+                onAdd={() => {}}
+                onDelete={geofence.deleteZone}
+                onToggle={geofence.toggleZone}
+                isDrawing={geofence.isDrawing}
+                onStartDraw={geofence.startDraw}
+                onCancelDraw={geofence.cancelDraw}
+              />
+            </>
           )}
         </main>
 
