@@ -137,12 +137,19 @@ export default function NewsFeedPanel() {
     setLoading(true);
     loadPosts().finally(() => setLoading(false));
 
+    // Auto-refresh every 10 minutes
+    const interval = setInterval(() => loadPosts(), 10 * 60 * 1000);
+
     const unsub = base44.entities.NewsPost.subscribe((ev) => {
       if (ev.type === "create") setPosts((p) => [ev.data, ...p]);
       else if (ev.type === "update") setPosts((p) => p.map((x) => x.id === ev.id ? ev.data : x));
       else if (ev.type === "delete") setPosts((p) => p.filter((x) => x.id !== ev.id));
     });
-    return unsub;
+
+    return () => {
+      clearInterval(interval);
+      unsub();
+    };
   }, [expanded]);
 
   const handleSubmit = async (form) => {
