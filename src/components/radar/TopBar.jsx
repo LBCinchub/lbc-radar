@@ -63,25 +63,24 @@ export default function TopBar({ eventCount, onAddEvent }) {
         <div className="relative" ref={langRef}>
           <button
             onClick={() => setShowLangMenu((v) => !v)}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-800/50 hover:bg-slate-700/60 border border-white/[0.07] rounded text-[11px] text-slate-400 font-bold tracking-wider transition-all"
+            className="px-2 py-1 text-[11px] text-slate-400 hover:text-white transition-colors flex items-center gap-1"
           >
             <Globe className="w-3 h-3" />
             {LANGUAGES[lang]?.label}
           </button>
           {showLangMenu && (
-            <div className="absolute bg-[#0d1117] border border-white/[0.08] rounded-lg shadow-2xl overflow-hidden z-50 top-full mt-1 left-0 flex flex-row items-center">
+            <div className="absolute bg-[#0d1117] border border-white/[0.08] rounded shadow-2xl overflow-hidden z-50 top-full mt-1.5 left-0 min-w-max">
               {Object.entries(LANGUAGES).map(([code, info]) => (
                 <button
                   key={code}
                   onClick={() => { setLang(code); setShowLangMenu(false); }}
-                  className={`px-3 py-2 text-[11px] flex items-center justify-start gap-1.5 transition-colors whitespace-nowrap border-r border-white/[0.05] last:border-r-0 ${
+                  className={`w-full text-left px-3 py-2 text-[11px] transition-colors ${
                     lang === code
                       ? "bg-red-500/10 text-red-400 font-bold"
                       : "text-slate-400 hover:bg-white/[0.04] hover:text-white"
                   }`}
                 >
-                  <span className="font-bold min-w-[20px]">{info.label}</span>
-                  <span className="text-slate-500">{info.name}</span>
+                  {info.label} - {info.name}
                 </button>
               ))}
             </div>
