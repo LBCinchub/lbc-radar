@@ -71,23 +71,23 @@ export default function TopBar({ eventCount, onAddEvent }) {
           {showLangMenu && (
             <div className="fixed left-0 top-0 w-full h-full pointer-events-none z-[9998]" style={{ background: "transparent" }}>
               <div className="absolute right-4 bg-[#0d1117] border border-white/[0.08] rounded-lg shadow-2xl overflow-hidden z-[9999] min-w-[150px] pointer-events-auto" style={{ top: 65 }}>
-              {Object.entries(LANGUAGES).map(([code, info]) => (
-                <button
-                  key={code}
-                  onClick={() => { setLang(code); setShowLangMenu(false); }}
-                  className={`w-full text-left px-3 py-2 text-[11px] flex items-center gap-2 transition-colors ${
-                    lang === code
-                      ? "bg-red-500/10 text-red-400 font-bold"
-                      : "text-slate-400 hover:bg-white/[0.04] hover:text-white"
-                  }`}
-                >
-                  <span className="font-bold w-5">{info.label}</span>
-                  <span>{info.name}</span>
-                </button>
-              ))}
+                {Object.entries(LANGUAGES).map(([code, info]) => (
+                  <button
+                    key={code}
+                    onClick={() => { setLang(code); setShowLangMenu(false); }}
+                    className={`w-full text-left px-3 py-2 text-[11px] flex items-center gap-2 transition-colors ${
+                      lang === code
+                        ? "bg-red-500/10 text-red-400 font-bold"
+                        : "text-slate-400 hover:bg-white/[0.04] hover:text-white"
+                    }`}
+                  >
+                    <span className="font-bold w-5">{info.label}</span>
+                    <span>{info.name}</span>
+                  </button>
+                ))}
               </div>
-              </div>
-              )}
+            </div>
+          )}
         </div>
 
         <button
