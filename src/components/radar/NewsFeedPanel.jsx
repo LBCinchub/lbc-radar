@@ -65,7 +65,7 @@ function SubmitForm({ onSubmit, onCancel, t }) {
   );
 }
 
-function NewsCard({ post }) {
+function NewsCard({ post, t }) {
   const [expanded, setExpanded] = useState(false);
   const cfg = STATUS_CONFIG[post.verification_status] || STATUS_CONFIG.pending;
   const Icon = cfg.icon;
@@ -77,6 +77,7 @@ function NewsCard({ post }) {
         <div style={{ display: "flex", alignItems: "center", gap: 3, background: cfg.bg, border: `1px solid ${cfg.color}33`, borderRadius: 4, padding: "2px 6px" }}>
           <Icon style={{ width: 9, height: 9, color: cfg.color }} />
           <span style={{ fontSize: 8, fontWeight: 700, color: cfg.color, letterSpacing: "0.08em", textTransform: "uppercase" }}>{cfg.label}</span>
+
           {post.verification_confidence != null && post.verification_status !== "pending" && (
             <span style={{ fontSize: 8, color: cfg.color, opacity: 0.7 }}>{Math.round(post.verification_confidence * 100)}%</span>
           )}
