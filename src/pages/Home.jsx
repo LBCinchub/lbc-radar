@@ -64,6 +64,7 @@ export default function Home() {
         {/* Left panel - Feed */}
         <aside className="w-[300px] shrink-0 panel-glass border-r border-white/[0.05] flex flex-col overflow-hidden hidden md:flex">
           <SmartDigestPanel events={events} />
+          <TrendAnalysisPanel events={events} />
           <div className="flex-1 overflow-hidden">
             <PulseFeed
               events={events}
