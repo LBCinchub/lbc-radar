@@ -1,18 +1,18 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
-const FINNHUB_API_KEY = Deno.env.get("FINNHUB_API_KEY");
-const FINNHUB_BASE_URL = "https://finnhub.io/api/v1";
+const ALPHA_VANTAGE_API_KEY = Deno.env.get("ALPHA_VANTAGE_API_KEY");
+const ALPHA_VANTAGE_BASE_URL = "https://www.alphavantage.co/query";
 
-// Map symbols to Finnhub quote endpoints
+// Map symbols to Alpha Vantage quote endpoints
 const SYMBOL_MAP = {
   "AAPL": "AAPL",
   "MSFT": "MSFT",
   "NVDA": "NVDA",
   "TSLA": "TSLA",
   "AMZN": "AMZN",
-  "XAU": "XAUUSD",
-  "XAG": "XAGUSD",
-  "OIL": "USOIL",
+  "XAU": "GC=F",
+  "XAG": "SI=F",
+  "OIL": "CL=F",
 };
 
 // Cryptocurrency IDs for CoinGecko
@@ -36,34 +36,38 @@ Deno.serve(async (req) => {
 
     const prices = [];
 
-    // Fetch stocks and commodities from Finnhub
-    for (const symbol of symbolsToFetch) {
-      if (CRYPTO_MAP[symbol]) continue; // Skip cryptos, handle separately
+    // Fetch stocks and commodities from Alpha Vantage
+     for (const symbol of symbolsToFetch) {
+       if (CRYPTO_MAP[symbol]) continue; // Skip cryptos, handle separately
 
-      const finnhubSymbol = SYMBOL_MAP[symbol] || symbol;
-      
-      try {
-        const response = await fetch(
-          `${FINNHUB_BASE_URL}/quote?symbol=${finnhubSymbol}&token=${FINNHUB_API_KEY}`
-        );
-        
-        if (!response.ok) continue;
+       const avSymbol = SYMBOL_MAP[symbol] || symbol;
 
-        const data = await response.json();
+       try {
+         const response = await fetch(
+           `${ALPHA_VANTAGE_BASE_URL}?function=GLOBAL_QUOTE&symbol=${avSymbol}&apikey=${ALPHA_VANTAGE_API_KEY}`
+         );
 
-        if (data && data.c) {
-          prices.push({
-            symbol: symbol,
-            price: data.c,
-            change_pct: (data.c - data.pc) / data.pc * 100,
-            type: 'stock',
-            timestamp: new Date().toISOString()
-          });
-        }
-      } catch (error) {
-        console.error(`Error fetching ${symbol}:`, error.message);
-      }
-    }
+         if (!response.ok) continue;
+
+         const data = await response.json();
+
+         if (data["Global Quote"] && data["Global Quote"]["05. price"]) {
+           const quote = data["Global Quote"];
+           const price = parseFloat(quote["05. price"]);
+           const changePct = parseFloat(quote["10. change percent"]) || 0;
+
+           prices.push({
+             symbol: symbol,
+             price: price,
+             change_pct: changePct,
+             type: 'stock',
+             timestamp: new Date().toISOString()
+           });
+         }
+       } catch (error) {
+         console.error(`Error fetching ${symbol}:`, error.message);
+       }
+     }
 
     // Fetch cryptocurrencies from CoinGecko (free API)
     const cryptoSymbols = symbolsToFetch.filter(s => CRYPTO_MAP[s]);
