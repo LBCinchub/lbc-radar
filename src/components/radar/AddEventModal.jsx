@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { X, Loader2, Sparkles } from "lucide-react";
 import { base44 } from "@/api/base44Client";
+import { useLang } from "../LanguageContext";
 
 const COUNTRIES = [
   { name: "Lebanon", code: "lb", lat: 33.8547, lng: 35.8623 },

@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useLang } from "../LanguageContext";
 import {
   TrendingUp, ChevronDown, ChevronUp, Loader2, RefreshCw,
   BarChart2, Flame, MapPin, AlertTriangle, Grid3x3

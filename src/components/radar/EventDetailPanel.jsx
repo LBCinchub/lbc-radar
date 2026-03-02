@@ -1,6 +1,7 @@
 import { X, MapPin, Clock, Shield, Zap, Brain } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
 import SeverityBadge from "./SeverityBadge";
+import { useLang } from "../LanguageContext";
 
 const EVENT_TYPE_LABELS = {
   airstrike: "Airstrike",

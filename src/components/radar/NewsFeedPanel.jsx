@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Newspaper, Plus, X, Loader2, CheckCircle2, XCircle, Clock, Link, ChevronDown, ChevronUp, ShieldCheck } from "lucide-react";
+import { useLang } from "../LanguageContext";
 
 const STATUS_CONFIG = {
   pending:    { label: "Checking...",   color: "#64748b", icon: Clock,         bg: "rgba(100,116,139,0.1)" },

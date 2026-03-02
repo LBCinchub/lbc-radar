@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { GitBranch, ChevronDown, ChevronRight, Loader2, RefreshCw, AlertTriangle, TrendingUp } from "lucide-react";
+import { useLang } from "../LanguageContext";
 
 const PATTERN_COLORS = [
   { border: "rgba(239,68,68,0.4)", bg: "rgba(239,68,68,0.06)", text: "#ef4444", dot: "#ef4444" },

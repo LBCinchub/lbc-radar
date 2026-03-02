@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Brain, Loader2, RefreshCw, TrendingUp, ChevronDown, ChevronUp, ShieldAlert, Zap } from "lucide-react";
 import { base44 } from "@/api/base44Client";
+import { useLang } from "../LanguageContext";
 
 const THREAT_COLORS = {
   CRITICAL: "text-red-400 border-red-500/40 bg-red-900/10",
