@@ -161,6 +161,21 @@ export default function Home() {
         onRemove={removeAlert}
         onLocate={(event) => setSelectedEvent(event)}
       />
+
+      {/* Predictive alert toasts */}
+      <div style={{ position: "fixed", top: 70, left: 16, zIndex: 9998, display: "flex", flexDirection: "column", gap: 8, pointerEvents: "none" }}>
+        {predictions.map(({ id, pred }) => (
+          <PredictiveAlertToast
+            key={id}
+            prediction={pred}
+            onClose={() => removePrediction(id)}
+            onLocate={(event) => setSelectedEvent(event)}
+          />
+        ))}
+      </div>
+
+      {/* Prediction engine (invisible) */}
+      <PredictiveAlertEngine events={events} onPrediction={addPrediction} />
     </div>
   );
 }
