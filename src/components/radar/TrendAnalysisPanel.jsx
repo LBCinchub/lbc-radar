@@ -117,7 +117,7 @@ const DarkTooltip = ({ active, payload, label }) => {
   );
 };
 
-function RegionHeatmap({ events }) {
+function RegionHeatmap({ events, t }) {
   const { months, regions, grid } = useMemo(() => buildHeatmapData(events), [events]);
   if (!regions.length) return null;
 
@@ -135,7 +135,7 @@ function RegionHeatmap({ events }) {
     <div>
       <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
         <Grid3x3 style={{ width: 12, height: 12, color: "#475569" }} />
-        <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.1em", color: "#475569", textTransform: "uppercase" }}>Region Heatmap — Past 6 Months</span>
+        <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.1em", color: "#475569", textTransform: "uppercase" }}>{t.regionHeatmap}</span>
       </div>
       <div style={{ overflowX: "auto" }}>
         <table style={{ width: "100%", borderCollapse: "separate", borderSpacing: 2 }}>
@@ -174,18 +174,18 @@ function RegionHeatmap({ events }) {
         </table>
         {/* Legend */}
         <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 5 }}>
-          <span style={{ fontSize: 8, color: "#334155" }}>Low</span>
+          <span style={{ fontSize: 8, color: "#334155" }}>{t.low}</span>
           {["rgba(59,130,246,0.4)", "rgba(245,158,11,0.5)", "rgba(239,68,68,0.6)", "rgba(239,68,68,0.9)"].map((c, i) => (
             <div key={i} style={{ width: 14, height: 8, borderRadius: 2, background: c }} />
           ))}
-          <span style={{ fontSize: 8, color: "#334155" }}>High</span>
+          <span style={{ fontSize: 8, color: "#334155" }}>{t.high}</span>
         </div>
       </div>
     </div>
   );
 }
 
-function TypeTrendLines({ events }) {
+function TypeTrendLines({ events, t }) {
   const allTypes = useMemo(() => [...new Set(events.map((e) => e.event_type || "other"))].slice(0, 5), [events]);
   const data = useMemo(() => buildTypeTrendData(events), [events]);
   if (!allTypes.length) return null;
@@ -194,7 +194,7 @@ function TypeTrendLines({ events }) {
     <div>
       <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
         <TrendingUp style={{ width: 12, height: 12, color: "#475569" }} />
-        <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.1em", color: "#475569", textTransform: "uppercase" }}>Event Type Trends — 4 Weeks</span>
+        <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.1em", color: "#475569", textTransform: "uppercase" }}>{t.eventTypeTrends}</span>
       </div>
       <ResponsiveContainer width="100%" height={80}>
         <LineChart data={data} margin={{ top: 2, right: 4, left: -24, bottom: 0 }}>
@@ -331,10 +331,10 @@ export default function TrendAnalysisPanel({ events }) {
           </div>
 
           {/* Region heatmap */}
-          <RegionHeatmap events={events} />
+          <RegionHeatmap events={events} t={t} />
 
           {/* Type trend lines */}
-          <TypeTrendLines events={events} />
+          <TypeTrendLines events={events} t={t} />
 
           {/* Top regions bar chart */}
           {regionData.length > 0 && (
