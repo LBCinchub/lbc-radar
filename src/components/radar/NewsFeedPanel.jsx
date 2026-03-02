@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Newspaper, Plus, X, Loader2, CheckCircle2, XCircle, Clock, Link, ChevronDown, ChevronUp, ShieldCheck, Settings } from "lucide-react";
+import { Newspaper, Plus, X, Loader2, CheckCircle2, XCircle, Clock, Link, ChevronDown, ChevronUp, ShieldCheck, Settings, Smile } from "lucide-react";
 import { useLang, NEWS_TRANSLATE_LANGS } from "../LanguageContext";
 
 const STATUS_CONFIG = {
@@ -8,6 +8,14 @@ const STATUS_CONFIG = {
   verified:   { key: "statusVerified",  color: "#10b981", icon: CheckCircle2,  bg: "rgba(16,185,129,0.1)"  },
   unverified: { key: "statusUnverified", color: "#f59e0b", icon: XCircle,       bg: "rgba(245,158,11,0.1)"  },
   false:      { key: "statusFalse",     color: "#ef4444", icon: XCircle,       bg: "rgba(239,68,68,0.1)"   },
+};
+
+const SENTIMENT_CONFIG = {
+  very_positive: { emoji: "🟢", label: "Very Bullish", color: "#10b981" },
+  positive: { emoji: "📈", label: "Bullish", color: "#34d399" },
+  neutral: { emoji: "➡️", label: "Neutral", color: "#94a3b8" },
+  negative: { emoji: "📉", label: "Bearish", color: "#f59e0b" },
+  very_negative: { emoji: "🔴", label: "Very Bearish", color: "#ef4444" },
 };
 
 function SubmitForm({ onSubmit, onCancel, t }) {
@@ -65,11 +73,12 @@ function SubmitForm({ onSubmit, onCancel, t }) {
   );
 }
 
-function NewsCard({ post, t, selectedLangs = ["en", "ar"] }) {
+function NewsCard({ post, t, selectedLangs = ["en", "ar"], highlightAssets = [] }) {
   const [expanded, setExpanded] = useState(false);
   const [displayLang, setDisplayLang] = useState(selectedLangs[0] || "en");
   const cfg = STATUS_CONFIG[post.verification_status] || STATUS_CONFIG.pending;
   const Icon = cfg.icon;
+  const sentimentCfg = SENTIMENT_CONFIG[post.sentiment] || SENTIMENT_CONFIG.neutral;
 
   const getTranslation = (field, lang) => {
     if (lang === "original") return post[field];
@@ -82,9 +91,11 @@ function NewsCard({ post, t, selectedLangs = ["en", "ar"] }) {
     return lang === "original" || post[`headline_${lang}`];
   });
 
+  const hasHighlightedAssets = post.mentioned_assets?.some(a => highlightAssets.includes(a.symbol));
+
   return (
-    <div style={{ background: "rgba(255,255,255,0.02)", border: `1px solid rgba(255,255,255,0.06)`, borderRadius: 6, padding: "8px 10px", marginBottom: 6 }}>
-      {/* Status badge */}
+    <div style={{ background: hasHighlightedAssets ? "rgba(59,130,246,0.05)" : "rgba(255,255,255,0.02)", border: `1px solid ${hasHighlightedAssets ? "rgba(59,130,246,0.2)" : "rgba(255,255,255,0.06)"}`, borderRadius: 6, padding: "8px 10px", marginBottom: 6 }}>
+      {/* Status & Sentiment badges */}
       <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 5 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 3, background: cfg.bg, border: `1px solid ${cfg.color}33`, borderRadius: 4, padding: "2px 6px" }}>
           <Icon style={{ width: 9, height: 9, color: cfg.color }} />
@@ -94,6 +105,17 @@ function NewsCard({ post, t, selectedLangs = ["en", "ar"] }) {
             <span style={{ fontSize: 8, color: cfg.color, opacity: 0.7 }}>{Math.round(post.verification_confidence * 100)}%</span>
           )}
         </div>
+
+        {post.sentiment && (
+          <div style={{ display: "flex", alignItems: "center", gap: 3, background: "rgba(255,255,255,0.02)", border: `1px solid ${sentimentCfg.color}33`, borderRadius: 4, padding: "2px 6px" }}>
+            <span style={{ fontSize: 10 }}>{sentimentCfg.emoji}</span>
+            <span style={{ fontSize: 8, fontWeight: 700, color: sentimentCfg.color, letterSpacing: "0.08em", textTransform: "uppercase" }}>{sentimentCfg.label}</span>
+            {post.sentiment_confidence && (
+              <span style={{ fontSize: 8, color: sentimentCfg.color, opacity: 0.7 }}>{Math.round(post.sentiment_confidence * 100)}%</span>
+            )}
+          </div>
+        )}
+
         {post.region && <span style={{ fontSize: 8, color: "#475569", marginLeft: "auto" }}>📍 {post.region}</span>}
       </div>
 
@@ -143,6 +165,20 @@ function NewsCard({ post, t, selectedLangs = ["en", "ar"] }) {
         </div>
       )}
 
+      {/* Mentioned assets */}
+      {post.mentioned_assets && post.mentioned_assets.length > 0 && (
+        <div style={{ background: "rgba(255,255,255,0.02)", borderLeft: `2px solid #3b82f655`, padding: "4px 8px", marginBottom: 4 }}>
+          <div style={{ fontSize: 8, fontWeight: 700, color: "#3b82f6", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 2 }}>Assets Mentioned</div>
+          <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+            {post.mentioned_assets.map((asset, idx) => (
+              <span key={idx} style={{ fontSize: 8, background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.2)", borderRadius: 3, padding: "2px 6px", color: "#3b82f6" }}>
+                {asset.symbol} ({asset.type})
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 3 }}>
         {post.content?.length > 100 && (
           <button onClick={() => setExpanded((v) => !v)} style={{ fontSize: 9, color: "#3b82f6", background: "none", border: "none", cursor: "pointer", padding: 0 }}>
@@ -168,20 +204,39 @@ export default function NewsFeedPanel() {
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showLangSettings, setShowLangSettings] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
   const [selectedLangs, setSelectedLangs] = useState(() => 
     JSON.parse(localStorage.getItem("news_translate_langs")) || ["en", "ar"]
   );
+  const [sortBy, setSortBy] = useState("date"); // date, relevance, source
+  const [sentimentFilter, setSentimentFilter] = useState("all");
+  const [assetFilter, setAssetFilter] = useState([]);
+  const [watchlists, setWatchlists] = useState([]);
+  const [suggestedAssets, setSuggestedAssets] = useState([
+    { symbol: "AAPL", type: "stock" },
+    { symbol: "MSFT", type: "stock" },
+    { symbol: "NVDA", type: "stock" },
+    { symbol: "BTC", type: "crypto" },
+    { symbol: "ETH", type: "crypto" },
+    { symbol: "XAU", type: "commodity" },
+    { symbol: "OIL", type: "commodity" },
+  ]);
   const { t } = useLang();
 
   const loadPosts = async () => {
-    const data = await base44.entities.NewsPost.list("-created_date", 20);
+    const data = await base44.entities.NewsPost.list("-created_date", 50);
     setPosts(data);
+  };
+
+  const loadWatchlists = async () => {
+    const data = await base44.entities.Watchlist.list();
+    setWatchlists(data);
   };
 
   useEffect(() => {
     if (!expanded) return;
     setLoading(true);
-    loadPosts().finally(() => setLoading(false));
+    Promise.all([loadPosts(), loadWatchlists()]).finally(() => setLoading(false));
 
     // Auto-refresh every 10 minutes
     const interval = setInterval(() => loadPosts(), 10 * 60 * 1000);
@@ -240,6 +295,36 @@ export default function NewsFeedPanel() {
     localStorage.setItem("news_translate_langs", JSON.stringify(updated));
   };
 
+  const allFilterAssets = [...suggestedAssets];
+  watchlists.forEach(wl => {
+    if (wl.watchlist_items) {
+      wl.watchlist_items.forEach(item => {
+        if (!allFilterAssets.find(a => a.symbol === item.symbol)) {
+          allFilterAssets.push({ symbol: item.symbol, type: item.type });
+        }
+      });
+    }
+  });
+
+  let filteredPosts = posts.filter(p => {
+    if (sentimentFilter !== "all" && p.sentiment !== sentimentFilter) return false;
+    if (assetFilter.length > 0 && !p.mentioned_assets?.some(a => assetFilter.includes(a.symbol))) return false;
+    return true;
+  });
+
+  // Sort posts
+  if (sortBy === "date") {
+    filteredPosts.sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
+  } else if (sortBy === "relevance") {
+    filteredPosts.sort((a, b) => {
+      const aMatches = assetFilter.length === 0 ? 0 : (a.mentioned_assets?.filter(x => assetFilter.includes(x.symbol)).length || 0);
+      const bMatches = assetFilter.length === 0 ? 0 : (b.mentioned_assets?.filter(x => assetFilter.includes(x.symbol)).length || 0);
+      return bMatches - aMatches || new Date(b.created_date) - new Date(a.created_date);
+    });
+  } else if (sortBy === "source") {
+    filteredPosts.sort((a, b) => (a.author_name || "").localeCompare(b.author_name || ""));
+  }
+
   return (
     <div className="border-b border-white/[0.05]">
       <div
@@ -255,26 +340,103 @@ export default function NewsFeedPanel() {
         )}
         <div className="ml-auto flex items-center gap-2">
           {expanded && (
-            <button
-              onClick={(e) => { e.stopPropagation(); setShowLangSettings((v) => !v); }}
-              className="text-[10px] text-slate-400 hover:text-cyan-400 flex items-center gap-1 transition-colors"
-              title="Translation settings"
-            >
-              <Settings className="w-2.5 h-2.5" />
-            </button>
-          )}
-          {expanded && (
-            <button
-              onClick={(e) => { e.stopPropagation(); setShowForm((v) => !v); }}
-              className="text-[10px] text-cyan-400 hover:text-cyan-300 flex items-center gap-1 transition-colors"
-            >
-              <Plus className="w-2.5 h-2.5" />
-              {t.submit}
-            </button>
+            <>
+              <button
+                onClick={(e) => { e.stopPropagation(); setShowFilters((v) => !v); }}
+                className="text-[10px] text-slate-400 hover:text-cyan-400 flex items-center gap-1 transition-colors"
+                title="Filters"
+              >
+                <Smile className="w-2.5 h-2.5" />
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); setShowLangSettings((v) => !v); }}
+                className="text-[10px] text-slate-400 hover:text-cyan-400 flex items-center gap-1 transition-colors"
+                title="Translation settings"
+              >
+                <Settings className="w-2.5 h-2.5" />
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); setShowForm((v) => !v); }}
+                className="text-[10px] text-cyan-400 hover:text-cyan-300 flex items-center gap-1 transition-colors"
+              >
+                <Plus className="w-2.5 h-2.5" />
+                {t.submit}
+              </button>
+            </>
           )}
           {expanded ? <ChevronUp className="w-3 h-3 text-slate-500" /> : <ChevronDown className="w-3 h-3 text-slate-500" />}
         </div>
       </div>
+
+      {expanded && showFilters && (
+        <div style={{ background: "rgba(255,255,255,0.02)", borderBottom: "1px solid rgba(255,255,255,0.06)", padding: 10 }}>
+          <div style={{ fontSize: 9, fontWeight: 700, marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.08em", color: "#94a3b8" }}>Sentiment Filter</div>
+          <div style={{ display: "flex", gap: 4, marginBottom: 8, flexWrap: "wrap" }}>
+            {["all", "very_positive", "positive", "neutral", "negative", "very_negative"].map(s => (
+              <button
+                key={s}
+                onClick={() => setSentimentFilter(s)}
+                style={{
+                  fontSize: 8,
+                  padding: "4px 8px",
+                  borderRadius: 3,
+                  border: sentimentFilter === s ? "1px solid #3b82f6" : "1px solid rgba(255,255,255,0.1)",
+                  background: sentimentFilter === s ? "rgba(59,130,246,0.1)" : "transparent",
+                  color: sentimentFilter === s ? "#3b82f6" : "#64748b",
+                  cursor: "pointer",
+                  fontWeight: sentimentFilter === s ? 700 : 400
+                }}
+              >
+                {s === "all" ? "All" : SENTIMENT_CONFIG[s]?.label || s}
+              </button>
+            ))}
+          </div>
+
+          <div style={{ fontSize: 9, fontWeight: 700, marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.08em", color: "#94a3b8" }}>Sort By</div>
+          <div style={{ display: "flex", gap: 4, marginBottom: 8 }}>
+            {["date", "relevance", "source"].map(s => (
+              <button
+                key={s}
+                onClick={() => setSortBy(s)}
+                style={{
+                  fontSize: 8,
+                  padding: "4px 8px",
+                  borderRadius: 3,
+                  border: sortBy === s ? "1px solid #3b82f6" : "1px solid rgba(255,255,255,0.1)",
+                  background: sortBy === s ? "rgba(59,130,246,0.1)" : "transparent",
+                  color: sortBy === s ? "#3b82f6" : "#64748b",
+                  cursor: "pointer",
+                  fontWeight: sortBy === s ? 700 : 400
+                }}
+              >
+                {s.charAt(0).toUpperCase() + s.slice(1)}
+              </button>
+            ))}
+          </div>
+
+          <div style={{ fontSize: 9, fontWeight: 700, marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em", color: "#94a3b8" }}>Filter by Assets</div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 4, maxHeight: 120, overflowY: "auto" }}>
+            {allFilterAssets.map((asset) => (
+              <label key={asset.symbol} style={{ display: "flex", alignItems: "center", gap: 4, cursor: "pointer", fontSize: 8 }}>
+                <input
+                  type="checkbox"
+                  checked={assetFilter.includes(asset.symbol)}
+                  onChange={() => {
+                    setAssetFilter(assetFilter.includes(asset.symbol)
+                      ? assetFilter.filter(s => s !== asset.symbol)
+                      : [...assetFilter, asset.symbol]
+                    );
+                  }}
+                  style={{ width: 10, height: 10, cursor: "pointer" }}
+                />
+                <span style={{ color: assetFilter.includes(asset.symbol) ? "#3b82f6" : "#64748b" }}>
+                  {asset.symbol} <span style={{ fontSize: 7, color: "#475569" }}>({asset.type})</span>
+                </span>
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
 
       {expanded && showLangSettings && (
         <div style={{ background: "rgba(255,255,255,0.02)", borderBottom: "1px solid rgba(255,255,255,0.06)", padding: 10, fontSize: 10, color: "#94a3b8" }}>
@@ -297,7 +459,7 @@ export default function NewsFeedPanel() {
         </div>
       )}
 
-      {expanded && !showLangSettings && (
+      {expanded && !showLangSettings && !showFilters && (
         <div className="px-3 pb-3">
           {showForm && <SubmitForm onSubmit={handleSubmit} onCancel={() => setShowForm(false)} t={t} />}
 
@@ -306,11 +468,11 @@ export default function NewsFeedPanel() {
               <Loader2 className="w-3 h-3 animate-spin text-cyan-400" />
               <span style={{ fontSize: 10, color: "#475569" }}>{t.loadingNews}</span>
             </div>
-          ) : posts.length === 0 ? (
-            <p style={{ fontSize: 10, color: "#334155", paddingTop: 4 }}>{t.noNewsYet}</p>
+          ) : filteredPosts.length === 0 ? (
+            <p style={{ fontSize: 10, color: "#334155", paddingTop: 4 }}>{assetFilter.length > 0 || sentimentFilter !== "all" ? "No news matching filters" : t.noNewsYet}</p>
           ) : (
             <div style={{ maxHeight: 340, overflowY: "auto" }}>
-              {posts.map((p) => <NewsCard key={p.id} post={p} t={t} selectedLangs={selectedLangs} />)}
+              {filteredPosts.map((p) => <NewsCard key={p.id} post={p} t={t} selectedLangs={selectedLangs} highlightAssets={assetFilter} />)}
             </div>
           )}
         </div>
