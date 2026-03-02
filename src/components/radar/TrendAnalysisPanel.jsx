@@ -271,7 +271,7 @@ export default function TrendAnalysisPanel({ events }) {
         onClick={() => setExpanded((v) => !v)}
       >
         <TrendingUp className="w-3.5 h-3.5 text-purple-400" />
-        <span className="text-[11px] font-bold tracking-widest text-slate-300 uppercase">Trend Analysis</span>
+        <span className="text-[11px] font-bold tracking-widest text-slate-300 uppercase">{t.trendAnalysis}</span>
         <div className="ml-auto flex items-center gap-2">
           {expanded && !loading && (
             <button
@@ -279,7 +279,7 @@ export default function TrendAnalysisPanel({ events }) {
               className="text-[10px] text-purple-400 hover:text-purple-300 flex items-center gap-1 transition-colors"
             >
               <RefreshCw className="w-2.5 h-2.5" />
-              {aiInsights ? "Refresh" : "AI Insights"}
+              {aiInsights ? t.refresh : t.aiInsights}
             </button>
           )}
           {expanded ? <ChevronUp className="w-3 h-3 text-slate-500" /> : <ChevronDown className="w-3 h-3 text-slate-500" />}
@@ -292,9 +292,9 @@ export default function TrendAnalysisPanel({ events }) {
           {/* Stats row */}
           <div className="grid grid-cols-3 gap-1.5">
             {[
-              { label: "Total", value: events.length, color: "#60a5fa" },
-              { label: "High Sev", value: events.filter(e => e.severity === "HIGH").length, color: "#ef4444" },
-              { label: "Escalations", value: `${escalationRate}%`, color: "#f59e0b" },
+              { label: t.total, value: events.length, color: "#60a5fa" },
+              { label: t.highSev, value: events.filter(e => e.severity === "HIGH").length, color: "#ef4444" },
+              { label: t.escalations, value: `${escalationRate}%`, color: "#f59e0b" },
             ].map(({ label, value, color }) => (
               <div key={label} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 6, padding: "6px 8px", textAlign: "center" }}>
                 <div style={{ fontSize: 14, fontWeight: 700, color, fontFamily: "monospace" }}>{value}</div>
@@ -307,7 +307,7 @@ export default function TrendAnalysisPanel({ events }) {
           <div>
             <div className="flex items-center gap-1.5 mb-1.5">
               <BarChart2 className="w-3 h-3 text-slate-500" />
-              <span className="text-[9px] font-bold tracking-widest text-slate-500 uppercase">14-Day Activity</span>
+              <span className="text-[9px] font-bold tracking-widest text-slate-500 uppercase">{t.dayActivity}</span>
             </div>
             <ResponsiveContainer width="100%" height={56}>
               <AreaChart data={timelineData} margin={{ top: 2, right: 0, left: -20, bottom: 0 }}>
@@ -341,7 +341,7 @@ export default function TrendAnalysisPanel({ events }) {
             <div>
               <div className="flex items-center gap-1.5 mb-1.5">
                 <MapPin className="w-3 h-3 text-slate-500" />
-                <span className="text-[9px] font-bold tracking-widest text-slate-500 uppercase">Top Hotspots</span>
+                <span className="text-[9px] font-bold tracking-widest text-slate-500 uppercase">{t.topHotspots}</span>
               </div>
               <ResponsiveContainer width="100%" height={Math.max(60, regionData.length * 18)}>
                 <BarChart data={regionData} layout="vertical" margin={{ top: 0, right: 4, left: 0, bottom: 0 }}>
@@ -368,12 +368,12 @@ export default function TrendAnalysisPanel({ events }) {
             <div style={{ background: "rgba(147,51,234,0.05)", border: "1px solid rgba(147,51,234,0.2)", borderRadius: 6, padding: "8px 10px" }}>
               <div className="flex items-center gap-1.5 mb-2">
                 <AlertTriangle className="w-3 h-3 text-purple-400" />
-                <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.1em", color: "#a855f7", textTransform: "uppercase" }}>AI Predictive Insights</span>
+                <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.1em", color: "#a855f7", textTransform: "uppercase" }}>{t.aiPredictiveInsights}</span>
               </div>
               {loading ? (
                 <div className="flex items-center gap-2">
                   <Loader2 className="w-3 h-3 animate-spin text-purple-400" />
-                  <span style={{ fontSize: 10, color: "#64748b" }}>Analyzing patterns...</span>
+                  <span style={{ fontSize: 10, color: "#64748b" }}>{t.analyzingPatterns}</span>
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -403,7 +403,7 @@ export default function TrendAnalysisPanel({ events }) {
               onClick={generateInsights}
               style={{ width: "100%", fontSize: 10, fontWeight: 600, color: "#a855f7", background: "rgba(147,51,234,0.1)", border: "1px solid rgba(147,51,234,0.25)", borderRadius: 5, padding: "5px 0", cursor: "pointer" }}
             >
-              ✨ Generate AI Predictions
+              {t.generateAIPredictions}
             </button>
           )}
         </div>
