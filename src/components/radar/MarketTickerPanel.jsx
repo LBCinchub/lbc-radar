@@ -110,7 +110,7 @@ export default function MarketTickerPanel() {
         onClick={() => setExpanded((v) => !v)}
       >
         <BarChart2 className="w-3.5 h-3.5 text-emerald-400" />
-        <span className="text-[11px] font-bold tracking-widest text-slate-300 uppercase">Markets</span>
+        <span className="text-[11px] font-bold tracking-widest text-slate-300 uppercase">News Market</span>
         {isLiveMode && (
           <span style={{ fontSize: 7, background: "rgba(16,185,129,0.2)", color: "#10b981", border: "1px solid rgba(16,185,129,0.3)", borderRadius: 2, padding: "1px 4px", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase" }}>
             ● LIVE
