@@ -27,6 +27,12 @@ export default function Home() {
   const [alerts, setAlerts] = useState([]);
   const [predictions, setPredictions] = useState([]);
   const [correlationGroups, setCorrelationGroups] = useState([]);
+  const [geofenceAlerts, setGeofenceAlerts] = useState([]);
+  const {
+    zones, isDrawing, drawPoints,
+    startDraw, cancelDraw, addDrawPoint, finishDraw,
+    deleteZone, toggleZone, checkEventAgainstZones,
+  } = useGeofence();
 
   const addPrediction = useCallback((pred) => {
     const id = Date.now() + Math.random();
