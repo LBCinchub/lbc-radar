@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
-import { MapContainer, TileLayer, useMap, Marker, Tooltip, Polygon, useMapEvents } from "react-leaflet";
+import { MapContainer, TileLayer, useMap, Marker, Tooltip, Polygon } from "react-leaflet";
 import { useLang } from "../LanguageContext";
+import GeofenceManager from "./GeofenceManager";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
