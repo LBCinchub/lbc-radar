@@ -433,6 +433,13 @@ export const T = {
     typeCyberattack: "Ciberataque",
     typeNaval: "Incidente naval",
     typeOther: "Incidente",
+    geofences: "Geocercas",
+    drawZone: "Dibujar zona",
+    drawingZone: "Haga clic en el mapa para agregar puntos. Doble clic para terminar.",
+    noZonesYet: "No hay zonas definidas aún",
+    aiPrediction: "Predicción IA",
+    predictionConfidence: "confianza",
+    viewRelatedEvent: "Ver evento relacionado",
   },
 };
 
