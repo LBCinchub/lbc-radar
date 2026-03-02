@@ -47,7 +47,7 @@ export default function PredictiveAlertToast({ prediction, onClose, onLocate }) 
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.15em", color: c.text, textTransform: "uppercase" }}>
-            🔮 AI Prediction · {prediction.risk_level}
+            🔮 {t.aiPrediction || "AI Prediction"} · {prediction.risk_level}
           </div>
           <div style={{ fontSize: 11, fontWeight: 600, color: "#f1f5f9", lineHeight: 1.3, marginTop: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
             {prediction.title}
