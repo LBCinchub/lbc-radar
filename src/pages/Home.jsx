@@ -18,6 +18,7 @@ export default function Home() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [alerts, setAlerts] = useState([]);
+  const [correlationGroups, setCorrelationGroups] = useState([]);
 
   const addAlert = useCallback((event) => {
     const id = Date.now();
