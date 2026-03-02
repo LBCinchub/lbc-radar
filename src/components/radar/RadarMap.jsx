@@ -1,12 +1,27 @@
-import { useEffect } from "react";
-import { MapContainer, TileLayer, Marker, Tooltip, useMap } from "react-leaflet";
+import { useEffect, useRef } from "react";
+import { MapContainer, TileLayer, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import "leaflet.markercluster/dist/MarkerCluster.css";
+import "leaflet.markercluster/dist/MarkerCluster.Default.css";
+import "leaflet.markercluster";
 
 const SEVERITY_COLORS = {
   HIGH: "#ef4444",
   MEDIUM: "#f59e0b",
   LOW: "#10b981",
+};
+
+const EVENT_TYPE_EMOJI = {
+  airstrike: "✈️",
+  missile: "🚀",
+  explosion: "💥",
+  clash: "⚔️",
+  threat: "⚠️",
+  diplomatic: "🤝",
+  cyberattack: "💻",
+  naval: "🚢",
+  other: "📍",
 };
 
 const ALERT_TYPES = ["airstrike", "missile", "explosion"];
@@ -17,16 +32,97 @@ function makeIcon(event, isSelected) {
 
   if (isAlert) {
     const html = `<div style="position:relative;width:32px;height:32px;display:flex;align-items:center;justify-content:center;">
-      <span style="font-size:18px;filter:drop-shadow(0 0 8px ${color});z-index:1;">🚀</span>
+      <span style="font-size:18px;filter:drop-shadow(0 0 8px ${color});z-index:1;">${EVENT_TYPE_EMOJI[event.event_type] || "🚀"}</span>
       ${isSelected ? `<div style="position:absolute;inset:-4px;border-radius:50%;border:2px solid ${color};animation:radarPing 1.2s ease-out infinite;"></div>` : ""}
     </div>`;
     return L.divIcon({ html, className: "", iconSize: [32, 32], iconAnchor: [16, 16] });
   }
 
   const size = event.severity === "HIGH" ? 12 : event.severity === "MEDIUM" ? 9 : 7;
-  const ring = isSelected ? `box-shadow:0 0 0 3px ${color}55,0 0 12px ${color};` : `box-shadow:0 0 6px ${color}88;`;
-  const html = `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${color};${ring}"></div>`;
+  const pulse = isSelected
+    ? `box-shadow:0 0 0 3px ${color}55,0 0 12px ${color};`
+    : `box-shadow:0 0 6px ${color}88;`;
+  const html = `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${color};${pulse}"></div>`;
   return L.divIcon({ html, className: "", iconSize: [size, size], iconAnchor: [size / 2, size / 2] });
+}
+
+function makeTooltipContent(event) {
+  const color = SEVERITY_COLORS[event.severity] || "#64748b";
+  const emoji = EVENT_TYPE_EMOJI[event.event_type] || "📍";
+  const typeLabel = event.event_type ? event.event_type.charAt(0).toUpperCase() + event.event_type.slice(1) : "Unknown";
+  const summary = event.summary ? event.summary.slice(0, 100) + (event.summary.length > 100 ? "…" : "") : "";
+  return `
+    <div style="background:#0d1117;border:1px solid ${color}44;border-radius:8px;padding:8px 10px;min-width:180px;max-width:240px;pointer-events:none;">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;">
+        <span style="font-size:13px;">${emoji}</span>
+        <span style="font-size:11px;font-weight:700;color:#f1f5f9;line-height:1.3;flex:1;">${event.title}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:${summary ? 5 : 0}px;">
+        <span style="font-size:9px;font-weight:700;letter-spacing:0.08em;color:${color};background:${color}18;border:1px solid ${color}33;border-radius:3px;padding:1px 5px;text-transform:uppercase;">${event.severity}</span>
+        <span style="font-size:9px;color:#475569;">${typeLabel}</span>
+        ${event.is_escalation ? `<span style="font-size:9px;color:#f59e0b;font-weight:600;">⬆ Escalation</span>` : ""}
+      </div>
+      ${event.country ? `<div style="font-size:9px;color:#475569;margin-bottom:${summary ? 4 : 0}px;">📌 ${event.country}${event.region ? ` · ${event.region}` : ""}</div>` : ""}
+      ${summary ? `<div style="font-size:10px;color:#94a3b8;line-height:1.45;border-top:1px solid rgba(255,255,255,0.05);padding-top:5px;">${summary}</div>` : ""}
+      <div style="font-size:8px;color:#334155;margin-top:5px;text-align:right;">Click to view details</div>
+    </div>`;
+}
+
+function ClusterLayer({ events, selectedEvent, onSelectEvent }) {
+  const map = useMap();
+  const clusterRef = useRef(null);
+
+  useEffect(() => {
+    // Create cluster group
+    const cluster = L.markerClusterGroup({
+      maxClusterRadius: 50,
+      showCoverageOnHover: false,
+      zoomToBoundsOnClick: true,
+      iconCreateFunction: (c) => {
+        const count = c.getChildCount();
+        const markers = c.getAllChildMarkers();
+        // Pick highest severity color in cluster
+        const hasCritical = markers.some((m) => m.options.eventData?.severity === "HIGH");
+        const hasMedium = markers.some((m) => m.options.eventData?.severity === "MEDIUM");
+        const color = hasCritical ? "#ef4444" : hasMedium ? "#f59e0b" : "#10b981";
+        const size = count >= 20 ? 44 : count >= 10 ? 38 : 32;
+        return L.divIcon({
+          html: `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${color}22;border:2px solid ${color}88;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:${color};box-shadow:0 0 12px ${color}44;">${count}</div>`,
+          className: "",
+          iconSize: [size, size],
+          iconAnchor: [size / 2, size / 2],
+        });
+      },
+    });
+
+    const positioned = events.filter((e) => e.latitude && e.longitude);
+
+    positioned.forEach((event) => {
+      const marker = L.marker([event.latitude, event.longitude], {
+        icon: makeIcon(event, selectedEvent?.id === event.id),
+        eventData: event,
+      });
+
+      marker.bindTooltip(makeTooltipContent(event), {
+        direction: "top",
+        offset: [0, -8],
+        opacity: 1,
+        className: "radar-tooltip",
+      });
+
+      marker.on("click", () => onSelectEvent?.(event));
+      cluster.addLayer(marker);
+    });
+
+    map.addLayer(cluster);
+    clusterRef.current = cluster;
+
+    return () => {
+      map.removeLayer(cluster);
+    };
+  }, [events, selectedEvent]);
+
+  return null;
 }
 
 function FlyTo({ event }) {
@@ -40,17 +136,20 @@ function FlyTo({ event }) {
 }
 
 export default function RadarMap({ events, selectedEvent, onSelectEvent }) {
-  const positioned = events.filter((e) => e.latitude && e.longitude);
-
   return (
     <div style={{ position: "relative", width: "100%", height: "100%" }}>
       <style>{`
         .leaflet-container { background: #050810 !important; }
         .leaflet-tile-pane { filter: brightness(0.85) saturate(0.6) contrast(1.1); }
         .leaflet-control-zoom, .leaflet-control-attribution { display: none !important; }
+        .radar-tooltip { background: transparent !important; border: none !important; box-shadow: none !important; padding: 0 !important; }
+        .radar-tooltip::before { display: none !important; }
         .leaflet-tooltip { background: transparent !important; border: none !important; box-shadow: none !important; padding: 0 !important; }
         .leaflet-tooltip-top:before { display: none !important; }
         @keyframes radarPing { 0% { transform: scale(1); opacity: 0.8; } 100% { transform: scale(2.5); opacity: 0; } }
+        .marker-cluster { background: transparent !important; }
+        .marker-cluster div { background: transparent !important; }
+        .leaflet-marker-icon { cursor: pointer !important; }
       `}</style>
 
       <MapContainer
@@ -62,13 +161,11 @@ export default function RadarMap({ events, selectedEvent, onSelectEvent }) {
         minZoom={2}
         maxZoom={12}
       >
-        {/* Base dark map with clear country borders */}
         <TileLayer
           url="https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png"
           subdomains="abcd"
           maxZoom={19}
         />
-        {/* Country borders + labels layer on top */}
         <TileLayer
           url="https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png"
           subdomains="abcd"
@@ -77,28 +174,7 @@ export default function RadarMap({ events, selectedEvent, onSelectEvent }) {
         />
 
         {selectedEvent && <FlyTo event={selectedEvent} />}
-
-        {positioned.map((event) => (
-          <Marker
-            key={event.id}
-            position={[event.latitude, event.longitude]}
-            icon={makeIcon(event, selectedEvent?.id === event.id)}
-            eventHandlers={{ click: () => onSelectEvent?.(event) }}
-          >
-            <Tooltip direction="top" offset={[0, -6]} opacity={1}>
-              <div style={{
-                background: "#0f1520",
-                border: "1px solid rgba(255,255,255,0.1)",
-                borderRadius: 6,
-                padding: "5px 9px",
-                maxWidth: 200,
-              }}>
-                <div style={{ fontSize: 11, fontWeight: 600, color: "#f1f5f9", lineHeight: 1.4 }}>{event.title}</div>
-                {event.country && <div style={{ fontSize: 10, color: "#64748b", marginTop: 2 }}>{event.country}</div>}
-              </div>
-            </Tooltip>
-          </Marker>
-        ))}
+        <ClusterLayer events={events} selectedEvent={selectedEvent} onSelectEvent={onSelectEvent} />
       </MapContainer>
 
       {/* Corner brackets */}
@@ -110,17 +186,13 @@ export default function RadarMap({ events, selectedEvent, onSelectEvent }) {
       {/* Powered by AI */}
       <div style={{ position:"absolute", top:10, left:"50%", transform:"translateX(-50%)", zIndex:500, pointerEvents:"none" }}>
         <div style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(0,0,0,0.7)", backdropFilter:"blur(8px)", padding:"4px 12px", borderRadius:20, border:"1px solid rgba(59,130,246,0.3)" }}>
-          <span style={{ width:6, height:6, borderRadius:"50%", background:"#60a5fa", animation:"pulse 2s infinite" }} />
+          <span style={{ width:6, height:6, borderRadius:"50%", background:"#60a5fa" }} />
           <span style={{ fontSize:10, color:"#93c5fd", fontWeight:700, letterSpacing:"0.1em", textTransform:"uppercase" }}>Powered by AI</span>
         </div>
       </div>
 
       {/* Legend */}
       <div style={{ position:"absolute", bottom:16, left:"50%", transform:"translateX(-50%)", zIndex:500, display:"flex", gap:8, pointerEvents:"none" }}>
-        <div style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(0,0,0,0.7)", padding:"4px 10px", borderRadius:6, border:"1px solid rgba(255,255,255,0.08)" }}>
-          <span style={{ fontSize:12 }}>🚀</span>
-          <span style={{ fontSize:10, color:"rgba(255,255,255,0.5)" }}>Missile/Strike</span>
-        </div>
         {["HIGH","MEDIUM","LOW"].map((s) => (
           <div key={s} style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(0,0,0,0.7)", padding:"4px 10px", borderRadius:6, border:"1px solid rgba(255,255,255,0.08)" }}>
             <span style={{ width:8, height:8, borderRadius:"50%", background: SEVERITY_COLORS[s] }} />
