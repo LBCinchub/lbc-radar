@@ -128,6 +128,7 @@ export default function NewsFeedPanel() {
   const [expanded, setExpanded] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { t } = useLang();
 
   const loadPosts = async () => {
     const data = await base44.entities.NewsPost.list("-created_date", 20);
@@ -195,10 +196,10 @@ export default function NewsFeedPanel() {
         onClick={() => setExpanded((v) => !v)}
       >
         <Newspaper className="w-3.5 h-3.5 text-cyan-400" />
-        <span className="text-[11px] font-bold tracking-widest text-slate-300 uppercase">News Feed</span>
+        <span className="text-[11px] font-bold tracking-widest text-slate-300 uppercase">{t.newsFeed}</span>
         {pendingCount > 0 && (
           <span style={{ fontSize: 8, background: "rgba(245,158,11,0.2)", color: "#f59e0b", border: "1px solid rgba(245,158,11,0.3)", borderRadius: 3, padding: "1px 5px", fontWeight: 700 }}>
-            {pendingCount} checking
+            {pendingCount} {t.checking}
           </span>
         )}
         <div className="ml-auto flex items-center gap-2">
@@ -208,7 +209,7 @@ export default function NewsFeedPanel() {
               className="text-[10px] text-cyan-400 hover:text-cyan-300 flex items-center gap-1 transition-colors"
             >
               <Plus className="w-2.5 h-2.5" />
-              Submit
+              {t.submit}
             </button>
           )}
           {expanded ? <ChevronUp className="w-3 h-3 text-slate-500" /> : <ChevronDown className="w-3 h-3 text-slate-500" />}
@@ -217,18 +218,18 @@ export default function NewsFeedPanel() {
 
       {expanded && (
         <div className="px-3 pb-3">
-          {showForm && <SubmitForm onSubmit={handleSubmit} onCancel={() => setShowForm(false)} />}
+          {showForm && <SubmitForm onSubmit={handleSubmit} onCancel={() => setShowForm(false)} t={t} />}
 
           {loading ? (
             <div className="flex items-center gap-2 py-3">
               <Loader2 className="w-3 h-3 animate-spin text-cyan-400" />
-              <span style={{ fontSize: 10, color: "#475569" }}>Loading news...</span>
+              <span style={{ fontSize: 10, color: "#475569" }}>{t.loadingNews}</span>
             </div>
           ) : posts.length === 0 ? (
-            <p style={{ fontSize: 10, color: "#334155", paddingTop: 4 }}>No news submitted yet. Be the first!</p>
+            <p style={{ fontSize: 10, color: "#334155", paddingTop: 4 }}>{t.noNewsYet}</p>
           ) : (
             <div style={{ maxHeight: 340, overflowY: "auto" }}>
-              {posts.map((p) => <NewsCard key={p.id} post={p} />)}
+              {posts.map((p) => <NewsCard key={p.id} post={p} t={t} />)}
             </div>
           )}
         </div>
