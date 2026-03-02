@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Brain, Loader2, RefreshCw, TrendingUp, ChevronDown, ChevronUp } from "lucide-react";
+import { Brain, Loader2, RefreshCw, TrendingUp, ChevronDown, ChevronUp, ShieldAlert, Zap } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 
 const THREAT_COLORS = {
@@ -10,6 +10,12 @@ const THREAT_COLORS = {
   LOW: "text-green-400 border-green-500/40 bg-green-900/10",
 };
 
+const SEVERITY_DOT = {
+  HIGH: "bg-red-500",
+  MEDIUM: "bg-amber-500",
+  LOW: "bg-green-500",
+};
+
 export default function SmartDigestPanel({ events }) {
   const [digest, setDigest] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -17,9 +23,12 @@ export default function SmartDigestPanel({ events }) {
 
   const generateDigest = async () => {
     setLoading(true);
-    const summary = events.slice(0, 20).map((e) => `[${e.severity}] ${e.title} (${e.region || e.country || "Unknown"})`).join("\n");
+    const eventDetails = events.slice(0, 15).map((e, i) =>
+      `Event ${i + 1}: [${e.severity}] ${e.title} — Type: ${e.event_type || "unknown"}, Location: ${e.country || e.region || "Unknown"}. ${e.summary || ""}`
+    ).join("\n");
+
     const result = await base44.integrations.Core.InvokeLLM({
-      prompt: `You are LBC RADAR, an elite global conflict intelligence AI. Analyze these recent security events and generate a concise, professional intelligence digest for analysts:\n\n${summary}\n\nProvide:\n1. Overall threat assessment (CRITICAL/HIGH/ELEVATED/MODERATE/LOW)\n2. Key hotspots (2-3 regions)\n3. 3-4 sentence executive summary\n4. Notable escalation trends`,
+      prompt: `You are LBC RADAR, an elite global conflict intelligence AI. Analyze these recent security events and generate a professional intelligence digest:\n\n${eventDetails}\n\nProvide:\n1. Overall threat assessment (CRITICAL/HIGH/ELEVATED/MODERATE/LOW)\n2. Key hotspots (2-3 regions)\n3. 3-4 sentence executive summary highlighting key developments and potential geopolitical impact\n4. Notable escalation trends\n5. Per-event analysis: for each event, a one-line impact statement and one recommended action for analysts`,
       response_json_schema: {
         type: "object",
         properties: {
@@ -27,6 +36,17 @@ export default function SmartDigestPanel({ events }) {
           hotspots: { type: "array", items: { type: "string" } },
           summary: { type: "string" },
           trends: { type: "string" },
+          event_summaries: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                title: { type: "string" },
+                impact: { type: "string" },
+                action: { type: "string" },
+              },
+            },
+          },
         },
       },
     });
@@ -59,18 +79,24 @@ export default function SmartDigestPanel({ events }) {
       {expanded && (
         <div className="px-3 pb-3">
           {loading ? (
-            <div className="flex items-center gap-2 text-[11px] text-slate-500 py-2">
-              <Loader2 className="w-3 h-3 animate-spin text-blue-400" />
-              Analyzing {events.length} events...
+            <div className="flex flex-col gap-1.5 py-2">
+              <div className="flex items-center gap-2 text-[11px] text-slate-400">
+                <Loader2 className="w-3 h-3 animate-spin text-blue-400" />
+                Analyzing {events.length} conflict events...
+              </div>
+              <div className="text-[10px] text-slate-600">Generating impact assessments & recommendations...</div>
             </div>
           ) : digest ? (
-            <div className="space-y-2">
+            <div className="space-y-3">
+              {/* Threat Level */}
               {digest.threat_level && (
                 <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded border text-[10px] font-bold tracking-widest ${THREAT_COLORS[digest.threat_level] || THREAT_COLORS.MODERATE}`}>
                   <TrendingUp className="w-2.5 h-2.5" />
                   THREAT: {digest.threat_level}
                 </div>
               )}
+
+              {/* Hotspots */}
               {digest.hotspots?.length > 0 && (
                 <div className="flex flex-wrap gap-1">
                   {digest.hotspots.map((h) => (
@@ -80,16 +106,49 @@ export default function SmartDigestPanel({ events }) {
                   ))}
                 </div>
               )}
+
+              {/* Executive Summary */}
               {digest.summary && (
                 <p className="text-[11px] text-slate-300 leading-relaxed">{digest.summary}</p>
               )}
+
+              {/* Trends */}
               {digest.trends && (
-                <p className="text-[11px] text-slate-500 leading-relaxed italic">{digest.trends}</p>
+                <p className="text-[11px] text-slate-500 leading-relaxed italic border-l-2 border-blue-500/30 pl-2">{digest.trends}</p>
+              )}
+
+              {/* Per-Event Summaries */}
+              {digest.event_summaries?.length > 0 && (
+                <div className="mt-2">
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <ShieldAlert className="w-3 h-3 text-red-400" />
+                    <span className="text-[10px] font-bold tracking-widest text-slate-400 uppercase">Event Briefings</span>
+                  </div>
+                  <div className="space-y-2">
+                    {digest.event_summaries.map((es, i) => (
+                      <div key={i} className="bg-slate-900/50 rounded border border-white/[0.05] p-2 space-y-1">
+                        <div className="text-[10px] font-semibold text-slate-300 truncate">{es.title}</div>
+                        {es.impact && (
+                          <div className="flex items-start gap-1">
+                            <TrendingUp className="w-2.5 h-2.5 text-amber-400 mt-0.5 shrink-0" />
+                            <span className="text-[10px] text-amber-300/80 leading-relaxed">{es.impact}</span>
+                          </div>
+                        )}
+                        {es.action && (
+                          <div className="flex items-start gap-1">
+                            <Zap className="w-2.5 h-2.5 text-blue-400 mt-0.5 shrink-0" />
+                            <span className="text-[10px] text-blue-300/80 leading-relaxed">{es.action}</span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
               )}
             </div>
           ) : (
             <p className="text-[11px] text-slate-600 py-1">
-              Click Generate to get an AI-powered intelligence digest.
+              Click Generate to get an AI-powered intelligence digest with impact assessments and recommended actions.
             </p>
           )}
         </div>
