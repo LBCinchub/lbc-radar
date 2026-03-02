@@ -7,6 +7,17 @@ export const LANGUAGES = {
   es: { label: "ES", name: "Español", dir: "ltr" },
 };
 
+export const NEWS_TRANSLATE_LANGS = {
+  en: { label: "EN", name: "English" },
+  ar: { label: "ع", name: "العربية" },
+  fr: { label: "FR", name: "Français" },
+  es: { label: "ES", name: "Español" },
+  pt: { label: "PT", name: "Português" },
+  ru: { label: "RU", name: "Русский" },
+  tr: { label: "TR", name: "Türkçe" },
+  fa: { label: "FA", name: "فارسی" },
+};
+
 export const T = {
   en: {
     // TopBar
@@ -125,8 +136,10 @@ export const T = {
     aiPrediction: "AI Prediction",
     predictionConfidence: "confidence",
     viewRelatedEvent: "View Related Event",
-  },
-  ar: {
+    newsTranslateLang: "Translate News To:",
+    autoDetect: "Auto-detect source language",
+    },
+    ar: {
     appSubtitle: "استخبارات النزاعات العالمية",
     live: "مباشر",
     activeEvents: "الأحداث النشطة:",
@@ -230,8 +243,10 @@ export const T = {
     aiPrediction: "تنبؤ الذكاء الاصطناعي",
     predictionConfidence: "ثقة",
     viewRelatedEvent: "عرض الحدث المرتبط",
-  },
-  fr: {
+    newsTranslateLang: "ترجمة الأخبار إلى:",
+    autoDetect: "الكشف التلقائي للغة المصدر",
+    },
+    fr: {
     appSubtitle: "Renseignement sur les conflits mondiaux",
     live: "EN DIRECT",
     activeEvents: "Événements actifs :",
@@ -335,8 +350,10 @@ export const T = {
     aiPrediction: "Prédiction IA",
     predictionConfidence: "confiance",
     viewRelatedEvent: "Voir l'événement lié",
-  },
-  es: {
+    newsTranslateLang: "Traduire les actualités en:",
+    autoDetect: "Détection automatique de la langue source",
+    },
+    es: {
     appSubtitle: "Inteligencia de conflictos globales",
     live: "EN VIVO",
     activeEvents: "Eventos activos:",
@@ -440,8 +457,10 @@ export const T = {
     aiPrediction: "Predicción IA",
     predictionConfidence: "confianza",
     viewRelatedEvent: "Ver evento relacionado",
-  },
-};
+    newsTranslateLang: "Traducir noticias a:",
+    autoDetect: "Detección automática del idioma de origen",
+    },
+    };
 
 const LanguageContext = createContext({ lang: "en", setLang: () => {}, t: T.en });
 
