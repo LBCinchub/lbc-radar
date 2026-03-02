@@ -8,6 +8,7 @@ import SmartDigestPanel from "../components/radar/SmartDigestPanel";
 import TrendAnalysisPanel from "../components/radar/TrendAnalysisPanel";
 import NewsFeedPanel from "../components/radar/NewsFeedPanel";
 import MarketTickerPanel from "../components/radar/MarketTickerPanel";
+import CorrelationPanel from "../components/radar/CorrelationPanel";
 import AddEventModal from "../components/radar/AddEventModal";
 import { AlertStack } from "../components/radar/AlertNotificationStack";
 
