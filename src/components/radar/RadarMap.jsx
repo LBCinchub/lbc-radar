@@ -141,6 +141,7 @@ function FlyTo({ event }) {
 }
 
 export default function RadarMap({ events, selectedEvent, onSelectEvent, correlationGroups }) {
+  const { t } = useLang();
   return (
     <div style={{ position: "relative", width: "100%", height: "100%" }}>
       <style>{`
