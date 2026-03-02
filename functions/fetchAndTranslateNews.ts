@@ -56,6 +56,24 @@ async function analyzeSentiment(base44, headline, content) {
   };
 }
 
+async function generateExecutiveSummary(base44, headline, content) {
+  const result = await base44.integrations.Core.InvokeLLM({
+    prompt: `Create a concise executive summary (2-3 sentences max) of this news article with focus on geopolitical implications and conflict-related impacts.\n\nHeadline: ${headline}\n\nContent: ${content}\n\nProvide: 1) A brief 1-sentence summary, 2) Key geopolitical impacts (2-3 bullet points).`,
+    response_json_schema: {
+      type: "object",
+      properties: {
+        summary: { type: "string", description: "Concise 1-2 sentence executive summary" },
+        impacts: { type: "array", items: { type: "string" }, description: "Key geopolitical impacts" }
+      }
+    }
+  });
+  
+  return {
+    executive_summary: result.summary || '',
+    key_impacts: result.impacts || []
+  };
+}
+
 function getLangName(code) {
   const names = {
     en: 'English',
@@ -150,13 +168,16 @@ Deno.serve(async (req) => {
     for (const item of items.slice(0, 10)) {
       const trans = await translateNews(base44, item.headline, item.content, langs);
       const sentiment = await analyzeSentiment(base44, item.headline, item.content);
+      const summary = await generateExecutiveSummary(base44, item.headline, item.content);
       
       const translatedItem = {
         ...item,
         verification_status: 'pending',
         sentiment: sentiment.sentiment,
         sentiment_confidence: sentiment.sentiment_confidence,
-        mentioned_assets: sentiment.mentioned_assets
+        mentioned_assets: sentiment.mentioned_assets,
+        executive_summary: summary.executive_summary,
+        key_impacts: summary.key_impacts
       };
       
       langs.forEach(lang => {
