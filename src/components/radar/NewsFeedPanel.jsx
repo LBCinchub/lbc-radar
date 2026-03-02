@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Newspaper, Plus, X, Loader2, CheckCircle2, XCircle, Clock, Link, ChevronDown, ChevronUp, ShieldCheck } from "lucide-react";
-import { useLang } from "../LanguageContext";
+import { Newspaper, Plus, X, Loader2, CheckCircle2, XCircle, Clock, Link, ChevronDown, ChevronUp, ShieldCheck, Settings } from "lucide-react";
+import { useLang, NEWS_TRANSLATE_LANGS } from "../LanguageContext";
 
 const STATUS_CONFIG = {
   pending:    { key: "statusChecking",   color: "#64748b", icon: Clock,         bg: "rgba(100,116,139,0.1)" },
@@ -65,15 +65,22 @@ function SubmitForm({ onSubmit, onCancel, t }) {
   );
 }
 
-function NewsCard({ post, t }) {
+function NewsCard({ post, t, selectedLangs = ["en", "ar"] }) {
   const [expanded, setExpanded] = useState(false);
-  const [showTranslation, setShowTranslation] = useState(false);
+  const [displayLang, setDisplayLang] = useState(selectedLangs[0] || "en");
   const cfg = STATUS_CONFIG[post.verification_status] || STATUS_CONFIG.pending;
   const Icon = cfg.icon;
 
-  const displayHeadline = showTranslation && post.headline_en ? post.headline_en : post.headline;
-  const displayContent = showTranslation && post.content_en ? post.content_en : post.content;
-  const hasTranslation = post.headline_en || post.content_en;
+  const getTranslation = (field, lang) => {
+    if (lang === "original") return post[field];
+    return post[`${field}_${lang}`] || post[field];
+  };
+
+  const displayHeadline = getTranslation("headline", displayLang);
+  const displayContent = getTranslation("content", displayLang);
+  const availableLangs = selectedLangs.filter(lang => {
+    return lang === "original" || post[`headline_${lang}`];
+  });
 
   return (
     <div style={{ background: "rgba(255,255,255,0.02)", border: `1px solid rgba(255,255,255,0.06)`, borderRadius: 6, padding: "8px 10px", marginBottom: 6 }}>
@@ -90,40 +97,30 @@ function NewsCard({ post, t }) {
         {post.region && <span style={{ fontSize: 8, color: "#475569", marginLeft: "auto" }}>📍 {post.region}</span>}
       </div>
 
-      {/* Translation toggle */}
-      {hasTranslation && (
-        <div style={{ marginBottom: 4, display: "flex", gap: 3 }}>
-          <button
-            onClick={() => setShowTranslation(false)}
-            style={{
-              fontSize: 8,
-              fontWeight: showTranslation ? 400 : 700,
-              color: showTranslation ? "#64748b" : "#3b82f6",
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              padding: 0,
-              textDecoration: showTranslation ? "none" : "underline"
-            }}
-          >
-            Original
-          </button>
-          <span style={{ fontSize: 8, color: "#334155" }}>•</span>
-          <button
-            onClick={() => setShowTranslation(true)}
-            style={{
-              fontSize: 8,
-              fontWeight: showTranslation ? 700 : 400,
-              color: showTranslation ? "#3b82f6" : "#64748b",
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              padding: 0,
-              textDecoration: showTranslation ? "underline" : "none"
-            }}
-          >
-            English
-          </button>
+      {/* Translation language selector */}
+      {availableLangs.length > 1 && (
+        <div style={{ marginBottom: 4, display: "flex", gap: 2, flexWrap: "wrap" }}>
+          {availableLangs.map((lang) => {
+            const label = lang === "original" ? "Original" : NEWS_TRANSLATE_LANGS[lang]?.label || lang;
+            return (
+              <button
+                key={lang}
+                onClick={() => setDisplayLang(lang)}
+                style={{
+                  fontSize: 8,
+                  fontWeight: displayLang === lang ? 700 : 400,
+                  color: displayLang === lang ? "#3b82f6" : "#64748b",
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  padding: 0,
+                  textDecoration: displayLang === lang ? "underline" : "none"
+                }}
+              >
+                {label}
+              </button>
+            );
+          })}
         </div>
       )}
 
@@ -170,6 +167,10 @@ export default function NewsFeedPanel() {
   const [expanded, setExpanded] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showLangSettings, setShowLangSettings] = useState(false);
+  const [selectedLangs, setSelectedLangs] = useState(() => 
+    JSON.parse(localStorage.getItem("news_translate_langs")) || ["en", "ar"]
+  );
   const { t } = useLang();
 
   const loadPosts = async () => {
@@ -231,6 +232,14 @@ export default function NewsFeedPanel() {
 
   const pendingCount = posts.filter((p) => p.verification_status === "pending").length;
 
+  const handleLangToggle = (lang) => {
+    const updated = selectedLangs.includes(lang)
+      ? selectedLangs.filter(l => l !== lang)
+      : [...selectedLangs, lang];
+    setSelectedLangs(updated);
+    localStorage.setItem("news_translate_langs", JSON.stringify(updated));
+  };
+
   return (
     <div className="border-b border-white/[0.05]">
       <div
@@ -247,6 +256,15 @@ export default function NewsFeedPanel() {
         <div className="ml-auto flex items-center gap-2">
           {expanded && (
             <button
+              onClick={(e) => { e.stopPropagation(); setShowLangSettings((v) => !v); }}
+              className="text-[10px] text-slate-400 hover:text-cyan-400 flex items-center gap-1 transition-colors"
+              title="Translation settings"
+            >
+              <Settings className="w-2.5 h-2.5" />
+            </button>
+          )}
+          {expanded && (
+            <button
               onClick={(e) => { e.stopPropagation(); setShowForm((v) => !v); }}
               className="text-[10px] text-cyan-400 hover:text-cyan-300 flex items-center gap-1 transition-colors"
             >
@@ -258,7 +276,28 @@ export default function NewsFeedPanel() {
         </div>
       </div>
 
-      {expanded && (
+      {expanded && showLangSettings && (
+        <div style={{ background: "rgba(255,255,255,0.02)", borderBottom: "1px solid rgba(255,255,255,0.06)", padding: 10, fontSize: 10, color: "#94a3b8" }}>
+          <div style={{ fontWeight: 700, marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>{t.newsTranslateLang}</div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 6 }}>
+            {Object.entries(NEWS_TRANSLATE_LANGS).map(([code, info]) => (
+              <label key={code} style={{ display: "flex", alignItems: "center", gap: 4, cursor: "pointer", padding: "4px 6px", borderRadius: 3, background: selectedLangs.includes(code) ? "rgba(59,130,246,0.1)" : "transparent", border: `1px solid ${selectedLangs.includes(code) ? "rgba(59,130,246,0.3)" : "transparent"}`, transition: "all 0.2s" }}>
+                <input
+                  type="checkbox"
+                  checked={selectedLangs.includes(code)}
+                  onChange={() => handleLangToggle(code)}
+                  style={{ width: 12, height: 12, cursor: "pointer" }}
+                />
+                <span style={{ color: selectedLangs.includes(code) ? "#3b82f6" : "#64748b" }}>
+                  <strong>{info.label}</strong> {info.name}
+                </span>
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {expanded && !showLangSettings && (
         <div className="px-3 pb-3">
           {showForm && <SubmitForm onSubmit={handleSubmit} onCancel={() => setShowForm(false)} t={t} />}
 
@@ -271,7 +310,7 @@ export default function NewsFeedPanel() {
             <p style={{ fontSize: 10, color: "#334155", paddingTop: 4 }}>{t.noNewsYet}</p>
           ) : (
             <div style={{ maxHeight: 340, overflowY: "auto" }}>
-              {posts.map((p) => <NewsCard key={p.id} post={p} t={t} />)}
+              {posts.map((p) => <NewsCard key={p.id} post={p} t={t} selectedLangs={selectedLangs} />)}
             </div>
           )}
         </div>
