@@ -84,7 +84,6 @@ export default function TopBar({ eventCount, onAddEvent }) {
                     <span>{info.name}</span>
                   </button>
                 ))}
-              </div>
             </div>
           )}
         </div>
