@@ -223,6 +223,13 @@ export const T = {
     typeCyberattack: "هجوم إلكتروني",
     typeNaval: "حادثة بحرية",
     typeOther: "حادثة",
+    geofences: "مناطق جغرافية",
+    drawZone: "رسم منطقة",
+    drawingZone: "انقر على الخريطة لإضافة نقاط. انقر مرتين للإنهاء.",
+    noZonesYet: "لا توجد مناطق محددة بعد",
+    aiPrediction: "تنبؤ الذكاء الاصطناعي",
+    predictionConfidence: "ثقة",
+    viewRelatedEvent: "عرض الحدث المرتبط",
   },
   fr: {
     appSubtitle: "Renseignement sur les conflits mondiaux",
