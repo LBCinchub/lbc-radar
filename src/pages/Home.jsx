@@ -16,6 +16,7 @@ import PredictiveAlertToast from "../components/radar/PredictiveAlertToast";
 import { useLang } from "../components/LanguageContext";
 
 export default function Home() {
+  const { t } = useLang();
   const [events, setEvents] = useState([]);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -113,7 +114,7 @@ export default function Home() {
           {loading ? (
             <div className="flex flex-col items-center justify-center h-full gap-3">
               <div className="w-8 h-8 border-2 border-red-500/30 border-t-red-500 rounded-full animate-spin" />
-              <p className="text-xs text-slate-500 tracking-widest uppercase">Initializing Radar...</p>
+              <p className="text-xs text-slate-500 tracking-widest uppercase">{t.initializingRadar}</p>
             </div>
           ) : (
             <RadarMap
