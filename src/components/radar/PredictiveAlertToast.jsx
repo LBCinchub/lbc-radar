@@ -9,6 +9,7 @@ const RISK_COLORS = {
 };
 
 export default function PredictiveAlertToast({ prediction, onClose, onLocate }) {
+  const { t } = useLang();
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
