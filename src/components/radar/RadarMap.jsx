@@ -1,8 +1,7 @@
 import { useEffect, useRef } from "react";
-import { MapContainer, TileLayer, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, useMap, Marker, Tooltip } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import "leaflet.markercluster";
 
 const SEVERITY_COLORS = {
   HIGH: "#ef4444",
@@ -71,7 +70,6 @@ function CorrelationLines({ events, correlationGroups }) {
   const linesRef = useRef([]);
 
   useEffect(() => {
-    // Remove old lines
     linesRef.current.forEach((l) => map.removeLayer(l));
     linesRef.current = [];
 
@@ -84,7 +82,6 @@ function CorrelationLines({ events, correlationGroups }) {
     correlationGroups.forEach((group, gi) => {
       const ids = group.event_ids || [];
       const color = COLORS[gi % COLORS.length];
-      // Draw lines between consecutive events in group
       for (let i = 0; i < ids.length - 1; i++) {
         const a = eventMap[ids[i]];
         const b = eventMap[ids[i + 1]];
@@ -110,61 +107,26 @@ function CorrelationLines({ events, correlationGroups }) {
   return null;
 }
 
-function ClusterLayer({ events, selectedEvent, onSelectEvent }) {
-  const map = useMap();
-  const clusterRef = useRef(null);
+function EventMarkers({ events, selectedEvent, onSelectEvent }) {
+  const positioned = events.filter((e) => e.latitude && e.longitude);
 
-  useEffect(() => {
-    // Create cluster group
-    const cluster = L.markerClusterGroup({
-      maxClusterRadius: 50,
-      showCoverageOnHover: false,
-      zoomToBoundsOnClick: true,
-      iconCreateFunction: (c) => {
-        const count = c.getChildCount();
-        const markers = c.getAllChildMarkers();
-        // Pick highest severity color in cluster
-        const hasCritical = markers.some((m) => m.options.eventData?.severity === "HIGH");
-        const hasMedium = markers.some((m) => m.options.eventData?.severity === "MEDIUM");
-        const color = hasCritical ? "#ef4444" : hasMedium ? "#f59e0b" : "#10b981";
-        const size = count >= 20 ? 44 : count >= 10 ? 38 : 32;
-        return L.divIcon({
-          html: `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${color}22;border:2px solid ${color}88;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:${color};box-shadow:0 0 12px ${color}44;">${count}</div>`,
-          className: "",
-          iconSize: [size, size],
-          iconAnchor: [size / 2, size / 2],
-        });
-      },
-    });
-
-    const positioned = events.filter((e) => e.latitude && e.longitude);
-
-    positioned.forEach((event) => {
-      const marker = L.marker([event.latitude, event.longitude], {
-        icon: makeIcon(event, selectedEvent?.id === event.id),
-        eventData: event,
-      });
-
-      marker.bindTooltip(makeTooltipContent(event), {
-        direction: "top",
-        offset: [0, -8],
-        opacity: 1,
-        className: "radar-tooltip",
-      });
-
-      marker.on("click", () => onSelectEvent?.(event));
-      cluster.addLayer(marker);
-    });
-
-    map.addLayer(cluster);
-    clusterRef.current = cluster;
-
-    return () => {
-      map.removeLayer(cluster);
-    };
-  }, [events, selectedEvent]);
-
-  return null;
+  return positioned.map((event) => (
+    <Marker
+      key={event.id}
+      position={[event.latitude, event.longitude]}
+      icon={makeIcon(event, selectedEvent?.id === event.id)}
+      eventHandlers={{ click: () => onSelectEvent?.(event) }}
+    >
+      <Tooltip
+        direction="top"
+        offset={[0, -8]}
+        opacity={1}
+        className="radar-tooltip"
+      >
+        <div dangerouslySetInnerHTML={{ __html: makeTooltipContent(event) }} />
+      </Tooltip>
+    </Marker>
+  ));
 }
 
 function FlyTo({ event }) {
@@ -189,8 +151,6 @@ export default function RadarMap({ events, selectedEvent, onSelectEvent, correla
         .leaflet-tooltip { background: transparent !important; border: none !important; box-shadow: none !important; padding: 0 !important; }
         .leaflet-tooltip-top:before { display: none !important; }
         @keyframes radarPing { 0% { transform: scale(1); opacity: 0.8; } 100% { transform: scale(2.5); opacity: 0; } }
-        .marker-cluster { background: transparent !important; }
-        .marker-cluster div { background: transparent !important; }
         .leaflet-marker-icon { cursor: pointer !important; }
       `}</style>
 
@@ -217,7 +177,7 @@ export default function RadarMap({ events, selectedEvent, onSelectEvent, correla
 
         {selectedEvent && <FlyTo event={selectedEvent} />}
         <CorrelationLines events={events} correlationGroups={correlationGroups} />
-        <ClusterLayer events={events} selectedEvent={selectedEvent} onSelectEvent={onSelectEvent} />
+        <EventMarkers events={events} selectedEvent={selectedEvent} onSelectEvent={onSelectEvent} />
       </MapContainer>
 
       {/* Corner brackets */}
