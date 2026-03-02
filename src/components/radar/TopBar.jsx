@@ -69,18 +69,18 @@ export default function TopBar({ eventCount, onAddEvent }) {
             {LANGUAGES[lang]?.label}
           </button>
           {showLangMenu && (
-            <div className="absolute bg-[#0d1117] border border-white/[0.08] rounded-lg shadow-2xl overflow-hidden z-50 min-w-[150px] top-full mt-1 right-0">
+            <div className="absolute bg-[#0d1117] border border-white/[0.08] rounded-lg shadow-2xl overflow-hidden z-50 top-full mt-1 left-0 flex flex-row">
               {Object.entries(LANGUAGES).map(([code, info]) => (
                 <button
                   key={code}
                   onClick={() => { setLang(code); setShowLangMenu(false); }}
-                  className={`w-full text-left px-3 py-2 text-[11px] flex items-center gap-2 transition-colors ${
+                  className={`px-3 py-2 text-[11px] flex items-center gap-2 transition-colors whitespace-nowrap ${
                     lang === code
                       ? "bg-red-500/10 text-red-400 font-bold"
                       : "text-slate-400 hover:bg-white/[0.04] hover:text-white"
                   }`}
                 >
-                  <span className="font-bold w-5">{info.label}</span>
+                  <span className="font-bold">{info.label}</span>
                   <span>{info.name}</span>
                 </button>
               ))}
