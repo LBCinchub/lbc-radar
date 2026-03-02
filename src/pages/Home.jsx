@@ -80,6 +80,7 @@ export default function Home() {
               events={events}
               onSelectEvent={setSelectedEvent}
               selectedEvent={selectedEvent}
+              onRefresh={loadEvents}
             />
           </div>
         </aside>
