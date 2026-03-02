@@ -204,7 +204,7 @@ export default function Home() {
       />
 
       {/* Predictive alert toasts */}
-      <div style={{ position: "fixed", top: 70, left: 16, zIndex: 9998, display: "flex", flexDirection: "column", gap: 8, pointerEvents: "none" }}>
+      <div style={{ position: "fixed", top: 70, right: 16, zIndex: 9998, display: "flex", flexDirection: "column", gap: 8, pointerEvents: "none", alignItems: "flex-end" }}>
         {predictions.map(({ id, pred }) => (
           <PredictiveAlertToast
             key={id}
