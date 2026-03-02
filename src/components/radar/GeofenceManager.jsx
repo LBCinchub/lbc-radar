@@ -4,7 +4,7 @@ import { useLang } from "../LanguageContext";
 
 export default function GeofenceManager({ zones, onAdd, onDelete, onToggle, isDrawing, onStartDraw, onCancelDraw }) {
   const { t } = useLang();
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(true);
 
   return (
     <div
