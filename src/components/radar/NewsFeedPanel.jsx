@@ -212,6 +212,7 @@ export default function NewsFeedPanel() {
   const [sentimentFilter, setSentimentFilter] = useState("all");
   const [assetFilter, setAssetFilter] = useState([]);
   const [watchlists, setWatchlists] = useState([]);
+  const [isLiveMode, setIsLiveMode] = useState(false);
   const [suggestedAssets, setSuggestedAssets] = useState([
     { symbol: "AAPL", type: "stock" },
     { symbol: "MSFT", type: "stock" },
@@ -238,8 +239,9 @@ export default function NewsFeedPanel() {
     setLoading(true);
     Promise.all([loadPosts(), loadWatchlists()]).finally(() => setLoading(false));
 
-    // Auto-refresh every 10 minutes
-    const interval = setInterval(() => loadPosts(), 10 * 60 * 1000);
+    // Auto-refresh based on live mode
+    const refreshInterval = isLiveMode ? 30 * 1000 : 10 * 60 * 1000;
+    const interval = setInterval(() => loadPosts(), refreshInterval);
 
     const unsub = base44.entities.NewsPost.subscribe((ev) => {
       if (ev.type === "create") setPosts((p) => [ev.data, ...p]);
@@ -251,7 +253,7 @@ export default function NewsFeedPanel() {
       clearInterval(interval);
       unsub();
     };
-  }, [expanded]);
+  }, [expanded, isLiveMode]);
 
   const handleSubmit = async (form) => {
     // Create post with pending status
@@ -333,6 +335,11 @@ export default function NewsFeedPanel() {
       >
         <Newspaper className="w-3.5 h-3.5 text-cyan-400" />
         <span className="text-[11px] font-bold tracking-widest text-slate-300 uppercase">{t.newsFeed}</span>
+        {isLiveMode && (
+          <span style={{ fontSize: 7, background: "rgba(59,130,246,0.2)", color: "#3b82f6", border: "1px solid rgba(59,130,246,0.3)", borderRadius: 2, padding: "1px 4px", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase" }}>
+            ● LIVE
+          </span>
+        )}
         {pendingCount > 0 && (
           <span style={{ fontSize: 8, background: "rgba(245,158,11,0.2)", color: "#f59e0b", border: "1px solid rgba(245,158,11,0.3)", borderRadius: 3, padding: "1px 5px", fontWeight: 700 }}>
             {pendingCount} {t.checking}
@@ -341,6 +348,19 @@ export default function NewsFeedPanel() {
         <div className="ml-auto flex items-center gap-2">
           {expanded && (
             <>
+              <button
+                onClick={(e) => { e.stopPropagation(); setIsLiveMode((v) => !v); }}
+                style={{ 
+                  fontSize: 9, 
+                  color: isLiveMode ? "#3b82f6" : "#64748b", 
+                  background: "none", 
+                  border: "none", 
+                  cursor: "pointer",
+                  fontWeight: isLiveMode ? 700 : 400
+                }}
+              >
+                {isLiveMode ? "◉ Live" : "○ Manual"}
+              </button>
               <button
                 onClick={(e) => { e.stopPropagation(); setShowFilters((v) => !v); }}
                 className="text-[10px] text-slate-400 hover:text-cyan-400 flex items-center gap-1 transition-colors"
