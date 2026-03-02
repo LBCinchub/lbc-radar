@@ -60,7 +60,7 @@ export default function PulseFeed({ events, onSelectEvent, selectedEvent, onRefr
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search events..."
+            placeholder={t.searchEvents}
             className="w-full bg-slate-800/50 border border-white/[0.06] rounded text-[11px] text-slate-300 placeholder-slate-600 pl-7 pr-3 py-1.5 focus:outline-none focus:border-red-500/40 transition-colors"
           />
         </div>
