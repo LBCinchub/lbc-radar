@@ -65,6 +65,43 @@ function CorrelationGroup({ group, index, onSelectEvent, t }) {
   );
 }
 
+function CorrelationChart({ groups }) {
+  const data = useMemo(() =>
+    groups.map((g, i) => ({
+      name: g.pattern_name?.split(" ").slice(0, 3).join(" ") || `Group ${i + 1}`,
+      events: g.event_ids?.length || 0,
+      risk: g.risk_level === "CRITICAL" ? 4 : g.risk_level === "HIGH" ? 3 : g.risk_level === "MEDIUM" ? 2 : 1,
+      risk_label: g.risk_level,
+    })), [groups]);
+
+  const riskColor = (r) => ({ CRITICAL: "#ef4444", HIGH: "#f97316", MEDIUM: "#f59e0b", LOW: "#10b981" }[r] || "#64748b");
+
+  if (!data.length) return null;
+
+  return (
+    <div style={{ marginTop: 8, marginBottom: 4 }}>
+      <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.1em", color: "#475569", textTransform: "uppercase", marginBottom: 5 }}>
+        Correlation Intensity
+      </div>
+      <ResponsiveContainer width="100%" height={Math.max(50, data.length * 18)}>
+        <BarChart data={data} layout="vertical" margin={{ top: 0, right: 4, left: 0, bottom: 0 }}>
+          <XAxis type="number" tick={{ fontSize: 8, fill: "#334155" }} tickLine={false} axisLine={false} allowDecimals={false} />
+          <YAxis type="category" dataKey="name" tick={{ fontSize: 8, fill: "#64748b" }} tickLine={false} axisLine={false} width={80} />
+          <Tooltip content={({ active, payload }) => active && payload?.length ? (
+            <div style={{ background: "#0f1520", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 5, padding: "4px 8px", fontSize: 10 }}>
+              <span style={{ color: riskColor(payload[0]?.payload?.risk_label) }}>{payload[0]?.payload?.risk_label}</span>
+              {" · "}<strong style={{ color: "#f1f5f9" }}>{payload[0]?.value} events</strong>
+            </div>
+          ) : null} />
+          <Bar dataKey="events" radius={[0, 3, 3, 0]}>
+            {data.map((entry, i) => <Cell key={i} fill={riskColor(entry.risk_label)} fillOpacity={0.7} />)}
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
 export default function CorrelationPanel({ events, onSelectEventById, onGroupsChange }) {
   const [expanded, setExpanded] = useState(false);
   const [groups, setGroups] = useState([]);
