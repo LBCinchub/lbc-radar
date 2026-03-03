@@ -180,6 +180,43 @@ function DrawingLayer({ isDrawing, drawPoints, onAddPoint, onFinishDraw }) {
   );
 }
 
+function HeatmapLayer({ events, enabled }) {
+  const map = useMap();
+  const circlesRef = useRef([]);
+
+  useEffect(() => {
+    circlesRef.current.forEach((c) => map.removeLayer(c));
+    circlesRef.current = [];
+    if (!enabled) return;
+
+    // Group events by proximity to create density clusters
+    const positioned = events.filter((e) => e.latitude && e.longitude);
+
+    positioned.forEach((event) => {
+      const color = event.severity === "HIGH" ? "#ef4444" : event.severity === "MEDIUM" ? "#f59e0b" : "#10b981";
+      const radius = event.severity === "HIGH" ? 180000 : event.severity === "MEDIUM" ? 130000 : 90000;
+      const opacity = event.is_escalation ? 0.18 : 0.1;
+
+      const circle = L.circle([event.latitude, event.longitude], {
+        radius,
+        color: "transparent",
+        fillColor: color,
+        fillOpacity: opacity,
+        interactive: false,
+      });
+      map.addLayer(circle);
+      circlesRef.current.push(circle);
+    });
+
+    return () => {
+      circlesRef.current.forEach((c) => map.removeLayer(c));
+      circlesRef.current = [];
+    };
+  }, [events, enabled, map]);
+
+  return null;
+}
+
 function GeofenceZones({ zones }) {
   return zones
     .filter((z) => z.active && z.points.length >= 3)
@@ -197,6 +234,7 @@ function GeofenceZones({ zones }) {
 
 export default function RadarMap({ events, selectedEvent, onSelectEvent, correlationGroups, zones = [], isDrawing = false, drawPoints = [], onAddDrawPoint, onFinishDraw }) {
   const { t } = useLang();
+  const [heatmapEnabled, setHeatmapEnabled] = useState(false);
   return (
     <div style={{ position: "relative", width: "100%", height: "100%" }}>
       <style>{`
