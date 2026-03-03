@@ -228,6 +228,81 @@ function TypeTrendLines({ events, t }) {
   );
 }
 
+// Severity distribution for Pie chart
+function buildSeverityPie(events) {
+  const counts = { HIGH: 0, MEDIUM: 0, LOW: 0 };
+  events.forEach((e) => { if (counts[e.severity] !== undefined) counts[e.severity]++; });
+  return Object.entries(counts).map(([name, value]) => ({ name, value }));
+}
+
+// Event type radar chart data
+function buildTypeRadar(events) {
+  const types = ["airstrike", "missile", "clash", "cyberattack", "naval", "diplomatic", "threat", "explosion"];
+  return types.map((type) => ({
+    type: TYPE_EMOJIS[type] + " " + type.charAt(0).toUpperCase() + type.slice(1),
+    count: events.filter((e) => e.event_type === type).length,
+  })).filter((d) => d.count > 0);
+}
+
+function SeverityPie({ events, t }) {
+  const data = useMemo(() => buildSeverityPie(events), [events]);
+  const PIE_COLORS = { HIGH: "#ef4444", MEDIUM: "#f59e0b", LOW: "#10b981" };
+  return (
+    <div>
+      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+        <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.1em", color: "#475569", textTransform: "uppercase" }}>Severity Split</span>
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <ResponsiveContainer width={80} height={80}>
+          <PieChart>
+            <Pie data={data} cx="50%" cy="50%" innerRadius={22} outerRadius={36} dataKey="value" strokeWidth={0}>
+              {data.map((entry) => <Cell key={entry.name} fill={PIE_COLORS[entry.name]} fillOpacity={0.85} />)}
+            </Pie>
+            <Tooltip content={({ active, payload }) => active && payload?.length ? (
+              <div style={{ background: "#0f1520", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 5, padding: "4px 8px", fontSize: 10, color: PIE_COLORS[payload[0].name] }}>
+                {payload[0].name}: <strong>{payload[0].value}</strong>
+              </div>
+            ) : null} />
+          </PieChart>
+        </ResponsiveContainer>
+        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+          {data.map((d) => (
+            <div key={d.name} style={{ display: "flex", alignItems: "center", gap: 5 }}>
+              <div style={{ width: 8, height: 8, borderRadius: 2, background: PIE_COLORS[d.name] }} />
+              <span style={{ fontSize: 9, color: "#64748b" }}>{d.name}</span>
+              <span style={{ fontSize: 10, fontWeight: 700, color: PIE_COLORS[d.name], fontFamily: "monospace" }}>{d.value}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EventTypeRadar({ events }) {
+  const data = useMemo(() => buildTypeRadar(events), [events]);
+  if (data.length < 3) return null;
+  return (
+    <div>
+      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+        <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.1em", color: "#475569", textTransform: "uppercase" }}>Event Type Distribution</span>
+      </div>
+      <ResponsiveContainer width="100%" height={120}>
+        <RadarChart data={data} margin={{ top: 4, right: 16, bottom: 4, left: 16 }}>
+          <PolarGrid stroke="rgba(255,255,255,0.06)" />
+          <PolarAngleAxis dataKey="type" tick={{ fontSize: 8, fill: "#475569" }} />
+          <Radar name="Events" dataKey="count" stroke="#ef4444" fill="#ef4444" fillOpacity={0.18} strokeWidth={1.5} />
+          <Tooltip content={({ active, payload }) => active && payload?.length ? (
+            <div style={{ background: "#0f1520", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 5, padding: "4px 8px", fontSize: 10, color: "#fca5a5" }}>
+              {payload[0].payload.type}: <strong>{payload[0].value}</strong>
+            </div>
+          ) : null} />
+        </RadarChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
 // --- Main panel ---
 
 export default function TrendAnalysisPanel({ events }) {
