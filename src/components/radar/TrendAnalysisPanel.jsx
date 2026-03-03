@@ -406,6 +406,14 @@ export default function TrendAnalysisPanel({ events }) {
             </ResponsiveContainer>
           </div>
 
+          {/* Severity Pie + Type Radar row */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <SeverityPie events={events} t={t} />
+          </div>
+
+          {/* Event type radar */}
+          <EventTypeRadar events={events} />
+
           {/* Region heatmap */}
           <RegionHeatmap events={events} t={t} />
 
