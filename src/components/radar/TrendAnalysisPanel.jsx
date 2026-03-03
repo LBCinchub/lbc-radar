@@ -7,7 +7,8 @@ import {
 import { base44 } from "@/api/base44Client";
 import {
   AreaChart, Area, LineChart, Line, BarChart, Bar,
-  XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, Legend
+  XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, Legend,
+  PieChart, Pie, RadarChart, Radar, PolarGrid, PolarAngleAxis
 } from "recharts";
 
 const SEV_COLOR = { HIGH: "#ef4444", MEDIUM: "#f59e0b", LOW: "#10b981" };
