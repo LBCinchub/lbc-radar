@@ -285,6 +285,26 @@ export default function RadarMap({ events, selectedEvent, onSelectEvent, correla
       <div style={{ position:"absolute", bottom:10, left:10, width:20, height:20, borderBottom:"2px solid rgba(220,38,38,0.5)", borderLeft:"2px solid rgba(220,38,38,0.5)", pointerEvents:"none", zIndex:500 }} />
       <div style={{ position:"absolute", bottom:10, right:10, width:20, height:20, borderBottom:"2px solid rgba(220,38,38,0.5)", borderRight:"2px solid rgba(220,38,38,0.5)", pointerEvents:"none", zIndex:500 }} />
 
+      {/* Heatmap Toggle */}
+      <div style={{ position:"absolute", top:10, left:42, zIndex:500 }}>
+        <button
+          onClick={() => setHeatmapEnabled(v => !v)}
+          style={{
+            display: "flex", alignItems: "center", gap: 5,
+            background: heatmapEnabled ? "rgba(239,68,68,0.2)" : "rgba(0,0,0,0.7)",
+            backdropFilter: "blur(8px)",
+            border: `1px solid ${heatmapEnabled ? "rgba(239,68,68,0.5)" : "rgba(255,255,255,0.1)"}`,
+            borderRadius: 6, padding: "4px 10px", cursor: "pointer",
+            fontSize: 10, color: heatmapEnabled ? "#fca5a5" : "#94a3b8",
+            fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase",
+            transition: "all 0.2s"
+          }}
+        >
+          <span style={{ width: 6, height: 6, borderRadius: "50%", background: heatmapEnabled ? "#ef4444" : "#475569", flexShrink: 0 }} />
+          Heatmap
+        </button>
+      </div>
+
       {/* Powered by AI */}
       <div style={{ position:"absolute", top:10, left:"50%", transform:"translateX(-50%)", zIndex:500, pointerEvents:"none" }}>
         <div style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(0,0,0,0.7)", backdropFilter:"blur(8px)", padding:"4px 12px", borderRadius:20, border:"1px solid rgba(59,130,246,0.3)" }}>
