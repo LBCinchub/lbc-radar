@@ -273,6 +273,7 @@ export default function RadarMap({ events, selectedEvent, onSelectEvent, correla
 
         {selectedEvent && <FlyTo event={selectedEvent} />}
         <CorrelationLines events={events} correlationGroups={correlationGroups} />
+        <HeatmapLayer events={events} enabled={heatmapEnabled} />
         <GeofenceZones zones={zones} />
         <DrawingLayer isDrawing={isDrawing} drawPoints={drawPoints} onAddPoint={onAddDrawPoint} onFinishDraw={onFinishDraw} />
         <EventMarkers events={events} selectedEvent={selectedEvent} onSelectEvent={onSelectEvent} />
