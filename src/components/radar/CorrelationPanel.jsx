@@ -183,7 +183,8 @@ Return JSON only. No markdown.`,
       </div>
 
       {expanded && (
-        <div className="px-2 pb-2 max-h-64 overflow-y-auto">
+        <div className="px-2 pb-2 max-h-72 overflow-y-auto">
+          {groups.length > 0 && <CorrelationChart groups={groups} />}
           {groups.length === 0 && !loading && (
             <div className="flex flex-col items-center justify-center py-5 gap-2">
               <GitBranch className="w-5 h-5 text-slate-700" />
