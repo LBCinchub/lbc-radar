@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, useMap, Marker, Tooltip, Polygon, useMapEvents
 import { useLang } from "../LanguageContext";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import MapClickWarningModal from "./MapClickWarningModal";
 
 const SEVERITY_COLORS = {
   HIGH: "#ef4444",
