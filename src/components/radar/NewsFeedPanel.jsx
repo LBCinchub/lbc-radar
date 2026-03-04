@@ -92,9 +92,27 @@ function NewsCard({ post, t, selectedLangs = ["en", "ar"], highlightAssets = [] 
   });
 
   const hasHighlightedAssets = post.mentioned_assets?.some(a => highlightAssets.includes(a.symbol));
+  const isBreaking = post.tags?.includes('BREAKING');
 
   return (
-    <div style={{ background: hasHighlightedAssets ? "rgba(59,130,246,0.05)" : "rgba(255,255,255,0.02)", border: `1px solid ${hasHighlightedAssets ? "rgba(59,130,246,0.2)" : "rgba(255,255,255,0.06)"}`, borderRadius: 6, padding: "8px 10px", marginBottom: 6 }}>
+    <div style={{
+      background: isBreaking ? "rgba(239,68,68,0.06)" : hasHighlightedAssets ? "rgba(59,130,246,0.05)" : "rgba(255,255,255,0.02)",
+      border: `1px solid ${isBreaking ? "rgba(239,68,68,0.35)" : hasHighlightedAssets ? "rgba(59,130,246,0.2)" : "rgba(255,255,255,0.06)"}`,
+      borderRadius: 6, padding: "8px 10px", marginBottom: 6,
+      boxShadow: isBreaking ? "0 0 12px rgba(239,68,68,0.12)" : "none"
+    }}>
+      {/* BREAKING NEWS banner */}
+      {isBreaking && (
+        <div style={{
+          display: "flex", alignItems: "center", gap: 6, marginBottom: 6,
+          background: "rgba(239,68,68,0.15)", border: "1px solid rgba(239,68,68,0.4)",
+          borderRadius: 4, padding: "3px 8px"
+        }}>
+          <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#ef4444", flexShrink: 0, animation: "pulse-red 1.2s infinite" }} />
+          <span style={{ fontSize: 9, fontWeight: 900, color: "#ef4444", letterSpacing: "0.18em", textTransform: "uppercase" }}>Breaking News</span>
+          <span style={{ fontSize: 8, color: "#f87171", opacity: 0.7, marginLeft: "auto" }}>NewsData.io</span>
+        </div>
+      )}
       {/* Status & Sentiment badges */}
       <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 5 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 3, background: cfg.bg, border: `1px solid ${cfg.color}33`, borderRadius: 4, padding: "2px 6px" }}>
