@@ -416,7 +416,7 @@ export default function NewsFeedPanel() {
   }
 
   return (
-    <>
+    <div style={{ position: "relative" }}>
     {toastPost && <NewsToast post={toastPost} onDismiss={() => setToastPost(null)} />}
     <div className="border-b border-white/[0.05]">
       <div
