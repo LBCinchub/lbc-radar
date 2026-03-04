@@ -588,6 +588,6 @@ export default function NewsFeedPanel() {
         </div>
       )}
     </div>
-    </>
+    </div>
   );
 }
