@@ -262,7 +262,8 @@ Deno.serve(async (req) => {
               content: article.description || article.ai_summary || article.content?.substring(0, 500) || '',
               source_url: article.link || '',
               author_name: article.source_name || article.creator?.[0] || 'NewsData.io',
-              region: article.country?.[0] || 'Global'
+              region: article.country?.[0] || 'Global',
+              tags: ['BREAKING'],
             });
           });
         }
