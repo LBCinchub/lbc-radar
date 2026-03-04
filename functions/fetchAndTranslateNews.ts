@@ -247,6 +247,30 @@ Deno.serve(async (req) => {
       console.log('Al Jazeera RSS fetch failed:', error.message);
     }
 
+    // Fetch from NewsData.io
+    try {
+      const newsdataKey = Deno.env.get('NEWSDATA_API_KEY');
+      if (newsdataKey) {
+        const newsdataUrl = `https://newsdata.io/api/1/latest?apikey=${newsdataKey}&q=war+conflict+military+geopolitics&language=en&category=politics,world`;
+        const newsdataResponse = await fetch(newsdataUrl);
+        if (newsdataResponse.ok) {
+          const newsdataData = await newsdataResponse.json();
+          (newsdataData.results || []).forEach(article => {
+            if (!article.title) return;
+            items.push({
+              headline: article.title,
+              content: article.description || article.ai_summary || article.content?.substring(0, 500) || '',
+              source_url: article.link || '',
+              author_name: article.source_name || article.creator?.[0] || 'NewsData.io',
+              region: article.country?.[0] || 'Global'
+            });
+          });
+        }
+      }
+    } catch (error) {
+      console.log('NewsData.io fetch failed:', error.message);
+    }
+
     // Fetch Reuters News RSS
     try {
       const reutersUrl = 'https://www.reutersagency.com/rssFeed/worldNews';
