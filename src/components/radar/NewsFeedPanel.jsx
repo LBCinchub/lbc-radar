@@ -416,6 +416,8 @@ export default function NewsFeedPanel() {
   }
 
   return (
+    <>
+    {toastPost && <NewsToast post={toastPost} onDismiss={() => setToastPost(null)} />}
     <div className="border-b border-white/[0.05]">
       <div
         className="flex items-center gap-2 p-3 cursor-pointer hover:bg-white/[0.02] transition-colors"
