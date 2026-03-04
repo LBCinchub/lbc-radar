@@ -294,7 +294,10 @@ export default function NewsFeedPanel() {
     const interval = setInterval(() => loadPosts(), refreshInterval);
 
     const unsub = base44.entities.NewsPost.subscribe((ev) => {
-      if (ev.type === "create") setPosts((p) => [ev.data, ...p]);
+      if (ev.type === "create") {
+        setPosts((p) => [ev.data, ...p]);
+        playRadarPing();
+      }
       else if (ev.type === "update") setPosts((p) => p.map((x) => x.id === ev.id ? ev.data : x));
       else if (ev.type === "delete") setPosts((p) => p.filter((x) => x.id !== ev.id));
     });
