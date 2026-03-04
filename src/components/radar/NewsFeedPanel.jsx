@@ -248,11 +248,45 @@ function playRadarPing() {
   } catch (_) {}
 }
 
+function NewsToast({ post, onDismiss }) {
+  const isBreaking = post.tags?.includes('BREAKING');
+  useEffect(() => {
+    const timer = setTimeout(onDismiss, 6000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  return (
+    <div style={{
+      position: "fixed", bottom: 24, right: 24, zIndex: 9999,
+      width: 300, background: isBreaking ? "rgba(30,8,8,0.97)" : "rgba(10,15,26,0.97)",
+      border: `1px solid ${isBreaking ? "rgba(239,68,68,0.6)" : "rgba(59,130,246,0.4)"}`,
+      borderRadius: 8, padding: "10px 12px",
+      boxShadow: isBreaking ? "0 0 24px rgba(239,68,68,0.3)" : "0 0 24px rgba(59,130,246,0.2)",
+      animation: "fadeInUp 0.3s ease-out forwards",
+      backdropFilter: "blur(12px)"
+    }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
+        <Radio style={{ width: 10, height: 10, color: isBreaking ? "#ef4444" : "#3b82f6" }} />
+        <span style={{ fontSize: 8, fontWeight: 900, color: isBreaking ? "#ef4444" : "#3b82f6", letterSpacing: "0.18em", textTransform: "uppercase" }}>
+          {isBreaking ? "⚡ Breaking News" : "📡 New Report"}
+        </span>
+        <span style={{ fontSize: 7, color: "#475569", marginLeft: "auto" }}>{post.author_name}</span>
+        <button onClick={onDismiss} style={{ background: "none", border: "none", color: "#475569", cursor: "pointer", fontSize: 12, lineHeight: 1, padding: 0 }}>×</button>
+      </div>
+      <div style={{ fontSize: 11, fontWeight: 700, color: isBreaking ? "#fca5a5" : "#e2e8f0", lineHeight: 1.4, marginBottom: 4 }}>
+        {post.headline?.slice(0, 100)}{post.headline?.length > 100 ? "…" : ""}
+      </div>
+      {post.region && <div style={{ fontSize: 8, color: "#475569" }}>📍 {post.region}</div>}
+    </div>
+  );
+}
+
 export default function NewsFeedPanel() {
   const [posts, setPosts] = useState([]);
   const [expanded, setExpanded] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [toastPost, setToastPost] = useState(null);
   const [showLangSettings, setShowLangSettings] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [selectedLangs, setSelectedLangs] = useState(() => 
