@@ -141,7 +141,17 @@ function FlyTo({ event }) {
   return null;
 }
 
-function DrawingLayer({ isDrawing, drawPoints, onAddPoint, onFinishDraw, onDoubleClickLocation }) {
+function MapDoubleClickHandler({ onDoubleClick }) {
+  useMapEvents({
+    dblclick(e) {
+      e.originalEvent.preventDefault();
+      onDoubleClick(e.latlng);
+    },
+  });
+  return null;
+}
+
+function DrawingLayer({ isDrawing, drawPoints, onAddPoint, onFinishDraw }) {
   useMapEvents({
     click(e) {
       if (!isDrawing) return;
@@ -151,7 +161,6 @@ function DrawingLayer({ isDrawing, drawPoints, onAddPoint, onFinishDraw, onDoubl
       if (!isDrawing) return;
       e.originalEvent.preventDefault();
       onFinishDraw();
-      onDoubleClickLocation?.(e.latlng);
     },
   });
 
