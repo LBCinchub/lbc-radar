@@ -326,6 +326,14 @@ export default function RadarMap({ events, selectedEvent, onSelectEvent, correla
           </div>
         ))}
       </div>
+
+      {warningLatlng && (
+        <MapClickWarningModal
+          latlng={warningLatlng}
+          onClose={() => setWarningLatlng(null)}
+          onSaved={() => setWarningLatlng(null)}
+        />
+      )}
     </div>
   );
 }
