@@ -165,7 +165,7 @@ function NewsCard({ post, t, selectedLangs = ["en", "ar"], highlightAssets = [] 
       )}
 
       {/* Headline */}
-      <div style={{ fontSize: 11, fontWeight: 600, color: "#e2e8f0", lineHeight: 1.4, marginBottom: 4 }}>{displayHeadline}</div>
+      <div style={{ fontSize: 11, fontWeight: isBreaking ? 800 : 600, color: isBreaking ? "#fca5a5" : "#e2e8f0", lineHeight: 1.4, marginBottom: 4 }}>{displayHeadline}</div>
 
       {/* Content preview */}
       <p style={{ fontSize: 10, color: "#64748b", lineHeight: 1.5, marginBottom: 4 }}>
