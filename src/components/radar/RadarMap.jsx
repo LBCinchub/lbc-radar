@@ -287,7 +287,8 @@ export default function RadarMap({ events, selectedEvent, onSelectEvent, correla
         <CorrelationLines events={events} correlationGroups={correlationGroups} />
         <HeatmapLayer events={events} enabled={heatmapEnabled} />
         <GeofenceZones zones={zones} />
-        <DrawingLayer isDrawing={isDrawing} drawPoints={drawPoints} onAddPoint={onAddDrawPoint} onFinishDraw={onFinishDraw} onDoubleClickLocation={(latlng) => setWarningLatlng(latlng)} />
+        <MapDoubleClickHandler onDoubleClick={(latlng) => setWarningLatlng(latlng)} />
+        <DrawingLayer isDrawing={isDrawing} drawPoints={drawPoints} onAddPoint={onAddDrawPoint} onFinishDraw={onFinishDraw} />
         <EventMarkers events={events} selectedEvent={selectedEvent} onSelectEvent={onSelectEvent} />
       </MapContainer>
 
