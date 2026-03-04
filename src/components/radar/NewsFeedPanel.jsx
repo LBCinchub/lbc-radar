@@ -331,6 +331,7 @@ export default function NewsFeedPanel() {
       if (ev.type === "create") {
         setPosts((p) => [ev.data, ...p]);
         playRadarPing();
+        setToastPost(ev.data);
       }
       else if (ev.type === "update") setPosts((p) => p.map((x) => x.id === ev.id ? ev.data : x));
       else if (ev.type === "delete") setPosts((p) => p.filter((x) => x.id !== ev.id));
