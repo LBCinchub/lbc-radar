@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
-import { Newspaper, Plus, X, Loader2, CheckCircle2, XCircle, Clock, Link, ChevronDown, ChevronUp, ShieldCheck, Settings, Smile } from "lucide-react";
+import { Newspaper, Plus, X, Loader2, CheckCircle2, XCircle, Clock, Link, ChevronDown, ChevronUp, ShieldCheck, Settings, Smile, Radio } from "lucide-react";
 import { useLang, NEWS_TRANSLATE_LANGS } from "../LanguageContext";
 
 const STATUS_CONFIG = {
