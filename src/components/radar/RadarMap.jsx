@@ -237,6 +237,7 @@ function GeofenceZones({ zones }) {
 export default function RadarMap({ events, selectedEvent, onSelectEvent, correlationGroups, zones = [], isDrawing = false, drawPoints = [], onAddDrawPoint, onFinishDraw }) {
   const { t } = useLang();
   const [heatmapEnabled, setHeatmapEnabled] = useState(false);
+  const [warningLatlng, setWarningLatlng] = useState(null);
   return (
     <div style={{ position: "relative", width: "100%", height: "100%" }}>
       <style>{`
