@@ -1,6 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
-const SUPPORTED_LANGS = ['en', 'ar', 'fr', 'es', 'pt', 'ru', 'tr', 'fa'];
 
 async function analyzeArticle(base44, headline, content) {
   const result = await base44.integrations.Core.InvokeLLM({
