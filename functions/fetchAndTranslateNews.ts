@@ -47,20 +47,6 @@ Content: ${content}`,
   };
 }
 
-function getLangName(code) {
-  const names = {
-    en: 'English',
-    ar: 'Arabic',
-    fr: 'French',
-    es: 'Spanish',
-    pt: 'Portuguese',
-    ru: 'Russian',
-    tr: 'Turkish',
-    fa: 'Farsi'
-  };
-  return names[code] || 'English';
-}
-
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -69,9 +55,6 @@ Deno.serve(async (req) => {
     if (!user) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
-
-    const { targetLanguages = ['en', 'ar'] } = await req.json().catch(() => ({}));
-    const langs = targetLanguages.filter(l => SUPPORTED_LANGS.includes(l));
 
     const items = [];
 
