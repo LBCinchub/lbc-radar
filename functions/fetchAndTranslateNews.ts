@@ -1,12 +1,44 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
+function parseRSS(text, authorName, region) {
+  const items = [];
+  const itemRegex = /<item>([\s\S]*?)<\/item>/g;
+  let match;
+  while ((match = itemRegex.exec(text)) !== null) {
+    const c = match[1];
+    const titleMatch = /<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/.exec(c) || /<title>(.*?)<\/title>/.exec(c);
+    const descMatch = /<description><!\[CDATA\[([\s\S]*?)\]\]><\/description>/.exec(c) || /<description>(.*?)<\/description>/.exec(c);
+    const linkMatch = /<link>(.*?)<\/link>/.exec(c);
+    if (titleMatch && descMatch) {
+      items.push({
+        headline: titleMatch[1].trim(),
+        content: descMatch[1].trim().replace(/<[^>]*>/g, '').slice(0, 400),
+        source_url: linkMatch ? linkMatch[1].trim() : '',
+        author_name: authorName,
+        region,
+      });
+    }
+  }
+  return items;
+}
+
+async function fetchSource(url, authorName, region) {
+  try {
+    const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
+    if (!res.ok) return [];
+    const text = await res.text();
+    return parseRSS(text, authorName, region);
+  } catch (_) {
+    return [];
+  }
+}
 
 async function analyzeArticle(base44, headline, content) {
   const result = await base44.integrations.Core.InvokeLLM({
     prompt: `Analyze this news article and return all of the following in a single response:
 1. Translate headline and content to Arabic (ar).
 2. Market sentiment (bullish/bearish).
-3. A concise executive summary focused on geopolitical implications.
+3. A concise executive summary focused on geopolitical implications (1-2 sentences).
 4. Key geopolitical impacts (2-3 bullet points).
 5. Any financial assets (stocks, commodities, crypto) mentioned.
 
@@ -50,244 +82,71 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
+    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    // 1. Fetch all RSS sources in parallel
+    const [bbc, guardian, aljazeera, reuters, shehab] = await Promise.all([
+      fetchSource('https://feeds.bbci.co.uk/news/world/rss.xml', 'BBC News', 'Global'),
+      fetchSource('https://www.theguardian.com/world/rss', 'The Guardian', 'Global'),
+      fetchSource('https://www.aljazeera.com/xml/rss/all.xml', 'Al Jazeera', 'Global'),
+      fetchSource('https://feeds.reuters.com/reuters/worldNews', 'Reuters', 'Global'),
+      fetchSource('https://t.me/s/ShehabTelegram2/rss', '@ShehabTelegram2', 'Middle East'),
+    ]);
 
-    const items = [];
-
-    // Fetch RSS feed from @ShehabTelegram2
-    try {
-      const rssUrl = 'https://t.me/s/ShehabTelegram2/rss';
-      const rssResponse = await fetch(rssUrl);
-
-      if (rssResponse.ok) {
-        const rssText = await rssResponse.text();
-
-        // Parse RSS feed
-        const itemRegex = /<item>([\s\S]*?)<\/item>/g;
-        let match;
-
-        while ((match = itemRegex.exec(rssText)) !== null) {
-          const itemContent = match[1];
-
-          const titleMatch = /<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/.exec(itemContent) || 
-                             /<title>(.*?)<\/title>/.exec(itemContent);
-          const descMatch = /<description><!\[CDATA\[([\s\S]*?)\]\]><\/description>/.exec(itemContent) ||
-                           /<description>(.*?)<\/description>/.exec(itemContent);
-          const linkMatch = /<link>(.*?)<\/link>/.exec(itemContent);
-
-          if (titleMatch && descMatch) {
-            items.push({
-              headline: titleMatch[1].trim(),
-              content: descMatch[1].trim().replace(/<[^>]*>/g, ''),
-              source_url: linkMatch ? linkMatch[1].trim() : '',
-              author_name: '@ShehabTelegram2',
-              region: 'Middle East'
-            });
-          }
-        }
-      }
-    } catch (error) {
-      console.log('RSS feed fetch failed:', error.message);
-    }
-
-    // Fetch from NewsAPI.org
-    try {
-      const newsApiKey = Deno.env.get('NEWS_API_KEY');
-      if (newsApiKey) {
-        const newsApiUrl = `https://newsapi.org/v2/everything?q=conflict+war+geopolitics&sortBy=publishedAt&language=en&pageSize=10&apiKey=${newsApiKey}`;
-        const newsResponse = await fetch(newsApiUrl);
-
-        if (newsResponse.ok) {
-          const newsData = await newsResponse.json();
-
-          (newsData.articles || []).forEach(article => {
-            items.push({
-              headline: article.title,
-              content: article.description || article.content || '',
-              source_url: article.url,
-              author_name: article.author || article.source.name,
-              region: 'Global'
-            });
-          });
-        }
-      }
-    } catch (error) {
-      console.log('NewsAPI fetch failed:', error.message);
-    }
-
-    // Fetch BBC News RSS
-    try {
-      const bbcUrl = 'http://feeds.bbc.co.uk/news/world/rss.xml';
-      const bbcResponse = await fetch(bbcUrl);
-      if (bbcResponse.ok) {
-        const bbcText = await bbcResponse.text();
-        const itemRegex = /<item>([\s\S]*?)<\/item>/g;
-        let match;
-        while ((match = itemRegex.exec(bbcText)) !== null) {
-          const itemContent = match[1];
-          const titleMatch = /<title>(.*?)<\/title>/.exec(itemContent);
-          const descMatch = /<description>(.*?)<\/description>/.exec(itemContent);
-          const linkMatch = /<link>(.*?)<\/link>/.exec(itemContent);
-          if (titleMatch && descMatch) {
-            items.push({
-              headline: titleMatch[1].trim(),
-              content: descMatch[1].trim().replace(/<[^>]*>/g, ''),
-              source_url: linkMatch ? linkMatch[1].trim() : '',
-              author_name: 'BBC News',
-              region: 'Global'
-            });
-          }
-        }
-      }
-    } catch (error) {
-      console.log('BBC RSS fetch failed:', error.message);
-    }
-
-    // Fetch Guardian World News RSS
-    try {
-      const guardianUrl = 'https://www.theguardian.com/world/rss';
-      const guardianResponse = await fetch(guardianUrl);
-      if (guardianResponse.ok) {
-        const guardianText = await guardianResponse.text();
-        const itemRegex = /<item>([\s\S]*?)<\/item>/g;
-        let match;
-        while ((match = itemRegex.exec(guardianText)) !== null) {
-          const itemContent = match[1];
-          const titleMatch = /<title>(.*?)<\/title>/.exec(itemContent);
-          const descMatch = /<description>(.*?)<\/description>/.exec(itemContent);
-          const linkMatch = /<link>(.*?)<\/link>/.exec(itemContent);
-          if (titleMatch && descMatch) {
-            items.push({
-              headline: titleMatch[1].trim(),
-              content: descMatch[1].trim().replace(/<[^>]*>/g, ''),
-              source_url: linkMatch ? linkMatch[1].trim() : '',
-              author_name: 'The Guardian',
-              region: 'Global'
-            });
-          }
-        }
-      }
-    } catch (error) {
-      console.log('Guardian RSS fetch failed:', error.message);
-    }
-
-    // Fetch Al Jazeera English RSS
-    try {
-      const alJazeeraUrl = 'https://www.aljazeera.com/xml/rss/all.xml';
-      const alJazeeraResponse = await fetch(alJazeeraUrl);
-      if (alJazeeraResponse.ok) {
-        const alJazeeraText = await alJazeeraResponse.text();
-        const itemRegex = /<item>([\s\S]*?)<\/item>/g;
-        let match;
-        while ((match = itemRegex.exec(alJazeeraText)) !== null) {
-          const itemContent = match[1];
-          const titleMatch = /<title>(.*?)<\/title>/.exec(itemContent);
-          const descMatch = /<description>(.*?)<\/description>/.exec(itemContent);
-          const linkMatch = /<link>(.*?)<\/link>/.exec(itemContent);
-          if (titleMatch && descMatch) {
-            items.push({
-              headline: titleMatch[1].trim(),
-              content: descMatch[1].trim().replace(/<[^>]*>/g, ''),
-              source_url: linkMatch ? linkMatch[1].trim() : '',
-              author_name: 'Al Jazeera',
-              region: 'Global'
-            });
-          }
-        }
-      }
-    } catch (error) {
-      console.log('Al Jazeera RSS fetch failed:', error.message);
-    }
-
-    // Fetch from NewsData.io
+    // Also fetch NewsData.io (API, not RSS)
+    let newsdataItems = [];
     try {
       const newsdataKey = Deno.env.get('NEWSDATA_API_KEY');
       if (newsdataKey) {
-        const newsdataUrl = `https://newsdata.io/api/1/latest?apikey=${newsdataKey}&q=war+conflict+military+geopolitics&language=en&category=politics,world`;
-        const newsdataResponse = await fetch(newsdataUrl);
-        if (newsdataResponse.ok) {
-          const newsdataData = await newsdataResponse.json();
-          (newsdataData.results || []).forEach(article => {
-            if (!article.title) return;
-            items.push({
-              headline: article.title,
-              content: article.description || article.ai_summary || article.content?.substring(0, 500) || '',
-              source_url: article.link || '',
-              author_name: article.source_name || article.creator?.[0] || 'NewsData.io',
-              region: article.country?.[0] || 'Global',
-              tags: ['BREAKING'],
-            });
-          });
+        const res = await fetch(
+          `https://newsdata.io/api/1/latest?apikey=${newsdataKey}&q=war+conflict+military&language=en&category=politics,world`,
+          { signal: AbortSignal.timeout(8000) }
+        );
+        if (res.ok) {
+          const data = await res.json();
+          newsdataItems = (data.results || []).filter(a => a.title).map(a => ({
+            headline: a.title,
+            content: (a.description || a.ai_summary || '').slice(0, 400),
+            source_url: a.link || '',
+            author_name: a.source_name || 'NewsData.io',
+            region: a.country?.[0] || 'Global',
+          }));
         }
       }
-    } catch (error) {
-      console.log('NewsData.io fetch failed:', error.message);
-    }
+    } catch (_) {}
 
-    // Fetch Reuters News RSS
-    try {
-      const reutersUrl = 'https://www.reutersagency.com/rssFeed/worldNews';
-      const reutersResponse = await fetch(reutersUrl);
-      if (reutersResponse.ok) {
-        const reutersText = await reutersResponse.text();
-        const itemRegex = /<item>([\s\S]*?)<\/item>/g;
-        let match;
-        while ((match = itemRegex.exec(reutersText)) !== null) {
-          const itemContent = match[1];
-          const titleMatch = /<title>(.*?)<\/title>/.exec(itemContent);
-          const descMatch = /<description>(.*?)<\/description>/.exec(itemContent);
-          const linkMatch = /<link>(.*?)<\/link>/.exec(itemContent);
-          if (titleMatch && descMatch) {
-            items.push({
-              headline: titleMatch[1].trim(),
-              content: descMatch[1].trim().replace(/<[^>]*>/g, ''),
-              source_url: linkMatch ? linkMatch[1].trim() : '',
-              author_name: 'Reuters',
-              region: 'Global'
-            });
-          }
-        }
-      }
-    } catch (error) {
-      console.log('Reuters RSS fetch failed:', error.message);
-    }
+    const allItems = [...bbc, ...guardian, ...aljazeera, ...reuters, ...shehab, ...newsdataItems];
 
-    const translatedItems = [];
-
-    for (const item of items.slice(0, 5)) {
-      const analysis = await analyzeArticle(base44, item.headline, item.content);
-
-      translatedItems.push({
-        ...item,
-        verification_status: 'pending',
-        headline_ar: analysis.headline_ar,
-        content_ar: analysis.content_ar,
-        sentiment: analysis.sentiment,
-        sentiment_confidence: analysis.sentiment_confidence,
-        mentioned_assets: analysis.mentioned_assets,
-        executive_summary: analysis.executive_summary,
-        key_impacts: analysis.key_impacts,
-      });
-    }
-
+    // 2. Deduplicate against existing posts BEFORE running LLM
     const existingPosts = await base44.entities.NewsPost.list('-created_date', 100);
     const existingHeadlines = new Set(existingPosts.map(p => p.headline));
+    const newItems = allItems.filter(item => item.headline && !existingHeadlines.has(item.headline));
 
-    const newItems = translatedItems.filter(item => !existingHeadlines.has(item.headline));
-
-    if (newItems.length > 0) {
-      await base44.entities.NewsPost.bulkCreate(newItems);
+    if (newItems.length === 0) {
+      return Response.json({ success: true, itemsFetched: allItems.length, itemsSaved: 0 });
     }
 
-    return Response.json({
-      success: true,
-      itemsFetched: items.length,
-      itemsTranslated: translatedItems.length,
-      itemsSaved: newItems.length
-    });
+    // 3. Analyze up to 4 new articles in parallel
+    const toAnalyze = newItems.slice(0, 4);
+    const analyses = await Promise.all(
+      toAnalyze.map(item => analyzeArticle(base44, item.headline, item.content))
+    );
+
+    const toSave = toAnalyze.map((item, i) => ({
+      ...item,
+      verification_status: 'pending',
+      headline_ar: analyses[i].headline_ar,
+      content_ar: analyses[i].content_ar,
+      sentiment: analyses[i].sentiment,
+      sentiment_confidence: analyses[i].sentiment_confidence,
+      mentioned_assets: analyses[i].mentioned_assets,
+      executive_summary: analyses[i].executive_summary,
+      key_impacts: analyses[i].key_impacts,
+    }));
+
+    await base44.entities.NewsPost.bulkCreate(toSave);
+
+    return Response.json({ success: true, itemsFetched: allItems.length, itemsSaved: toSave.length });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }
