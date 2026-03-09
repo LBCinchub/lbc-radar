@@ -275,27 +275,20 @@ Deno.serve(async (req) => {
 
     const translatedItems = [];
 
-    for (const item of items.slice(0, 10)) {
-      const trans = await translateNews(base44, item.headline, item.content, langs);
-      const sentiment = await analyzeSentiment(base44, item.headline, item.content);
-      const summary = await generateExecutiveSummary(base44, item.headline, item.content);
-      
-      const translatedItem = {
+    for (const item of items.slice(0, 5)) {
+      const analysis = await analyzeArticle(base44, item.headline, item.content);
+
+      translatedItems.push({
         ...item,
         verification_status: 'pending',
-        sentiment: sentiment.sentiment,
-        sentiment_confidence: sentiment.sentiment_confidence,
-        mentioned_assets: sentiment.mentioned_assets,
-        executive_summary: summary.executive_summary,
-        key_impacts: summary.key_impacts
-      };
-      
-      langs.forEach(lang => {
-        translatedItem[`headline_${lang}`] = trans.headline[lang];
-        translatedItem[`content_${lang}`] = trans.content[lang];
+        headline_ar: analysis.headline_ar,
+        content_ar: analysis.content_ar,
+        sentiment: analysis.sentiment,
+        sentiment_confidence: analysis.sentiment_confidence,
+        mentioned_assets: analysis.mentioned_assets,
+        executive_summary: analysis.executive_summary,
+        key_impacts: analysis.key_impacts,
       });
-
-      translatedItems.push(translatedItem);
     }
 
     const existingPosts = await base44.entities.NewsPost.list('-created_date', 100);
