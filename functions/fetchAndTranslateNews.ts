@@ -2,38 +2,24 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 const SUPPORTED_LANGS = ['en', 'ar', 'fr', 'es', 'pt', 'ru', 'tr', 'fa'];
 
-async function translateNews(base44, headline, content, targetLangs) {
-  const translations = { headline: {}, content: {} };
-
-  for (const lang of targetLangs) {
-    if (lang === 'auto') continue;
-    
-    const result = await base44.integrations.Core.InvokeLLM({
-      prompt: `Detect the source language and translate the following news to ${getLangName(lang)}. Keep the same meaning and tone. Just provide the translation, no explanations.\n\nHeadline: ${headline}\n\nContent: ${content}`,
-      response_json_schema: {
-        type: "object",
-        properties: {
-          headline: { type: "string" },
-          content: { type: "string" }
-        }
-      }
-    });
-
-    translations.headline[`${lang}`] = result.headline || headline;
-    translations.content[`${lang}`] = result.content || content;
-  }
-
-  return translations;
-}
-
-async function analyzeSentiment(base44, headline, content) {
+async function analyzeArticle(base44, headline, content) {
   const result = await base44.integrations.Core.InvokeLLM({
-    prompt: `Analyze the market sentiment of this news article. Consider whether it's bullish or bearish for markets in general.\n\nHeadline: ${headline}\n\nContent: ${content}\n\nRespond with sentiment level and confidence.`,
+    prompt: `Analyze this news article and return all of the following in a single response:
+1. Translate headline and content to Arabic (ar).
+2. Market sentiment (bullish/bearish).
+3. A concise executive summary focused on geopolitical implications.
+4. Key geopolitical impacts (2-3 bullet points).
+5. Any financial assets (stocks, commodities, crypto) mentioned.
+
+Headline: ${headline}
+Content: ${content}`,
     response_json_schema: {
       type: "object",
       properties: {
-        sentiment: { type: "string", enum: ["very_positive", "positive", "neutral", "negative", "very_negative"], description: "Market sentiment" },
-        confidence: { type: "number", description: "Confidence score 0.0-1.0" },
+        headline_ar: { type: "string" },
+        content_ar: { type: "string" },
+        sentiment: { type: "string", enum: ["very_positive", "positive", "neutral", "negative", "very_negative"] },
+        sentiment_confidence: { type: "number" },
         mentioned_assets: {
           type: "array",
           items: {
@@ -42,35 +28,22 @@ async function analyzeSentiment(base44, headline, content) {
               symbol: { type: "string" },
               type: { type: "string", enum: ["stock", "commodity", "crypto"] }
             }
-          },
-          description: "Assets mentioned in the article"
-        }
+          }
+        },
+        executive_summary: { type: "string" },
+        key_impacts: { type: "array", items: { type: "string" } }
       }
     }
   });
-  
-  return {
-    sentiment: result.sentiment || 'neutral',
-    sentiment_confidence: result.confidence || 0.5,
-    mentioned_assets: result.mentioned_assets || []
-  };
-}
 
-async function generateExecutiveSummary(base44, headline, content) {
-  const result = await base44.integrations.Core.InvokeLLM({
-    prompt: `Create a concise executive summary (2-3 sentences max) of this news article with focus on geopolitical implications and conflict-related impacts.\n\nHeadline: ${headline}\n\nContent: ${content}\n\nProvide: 1) A brief 1-sentence summary, 2) Key geopolitical impacts (2-3 bullet points).`,
-    response_json_schema: {
-      type: "object",
-      properties: {
-        summary: { type: "string", description: "Concise 1-2 sentence executive summary" },
-        impacts: { type: "array", items: { type: "string" }, description: "Key geopolitical impacts" }
-      }
-    }
-  });
-  
   return {
-    executive_summary: result.summary || '',
-    key_impacts: result.impacts || []
+    headline_ar: result.headline_ar || headline,
+    content_ar: result.content_ar || content,
+    sentiment: result.sentiment || 'neutral',
+    sentiment_confidence: result.sentiment_confidence || 0.5,
+    mentioned_assets: result.mentioned_assets || [],
+    executive_summary: result.executive_summary || '',
+    key_impacts: result.key_impacts || []
   };
 }
 
