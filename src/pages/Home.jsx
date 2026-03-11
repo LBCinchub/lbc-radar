@@ -14,9 +14,6 @@ import AddEventModal from "../components/radar/AddEventModal";
 import { AlertStack } from "../components/radar/AlertNotificationStack";
 import PredictiveAlertEngine from "../components/radar/PredictiveAlertEngine";
 import PredictiveAlertToast from "../components/radar/PredictiveAlertToast";
-import GeofenceAlertToast from "../components/radar/GeofenceAlertToast";
-import GeofenceManager from "../components/radar/GeofenceManager";
-import { useGeofence } from "../components/radar/useGeofence";
 import { useLang } from "../components/LanguageContext";
 
 export default function Home() {
@@ -28,10 +25,6 @@ export default function Home() {
   const [alerts, setAlerts] = useState([]);
   const [predictions, setPredictions] = useState([]);
   const [correlationGroups, setCorrelationGroups] = useState([]);
-  const [geofenceAlerts, setGeofenceAlerts] = useState([]);
-
-  const geofence = useGeofence();
-  const { isDrawing } = geofence;
 
   const addPrediction = useCallback((pred) => {
     const id = Date.now() + Math.random();
@@ -75,12 +68,6 @@ export default function Home() {
         if (event.data?.severity === "HIGH") {
           addAlert(event.data);
         }
-        // Check geofence zones
-        const hit = geofence.checkEventAgainstZones(event.data);
-        if (hit) {
-          const id = Date.now() + Math.random();
-          setGeofenceAlerts((prev) => [...prev.slice(-4), { id, event: hit.event, zoneName: hit.zone.name, zoneColor: hit.zone.color }]);
-        }
       } else if (event.type === "update") {
         setEvents((prev) => prev.map((e) => (e.id === event.id ? event.data : e)));
       } else if (event.type === "delete") {
@@ -98,16 +85,7 @@ export default function Home() {
     await base44.entities.ConflictEvent.create(formData);
   };
 
-  // Compute which events fall inside active geofence zones
-  const geofencedEventIds = useMemo(() => {
-    const ids = new Set();
-    for (const zone of geofence.zones) {
-      if (!zone.active) continue;
-      const hits = geofence.checkAllEventsAgainstZone(events, zone);
-      hits.forEach((e) => ids.add(e.id));
-    }
-    return ids;
-  }, [events, geofence.zones]);
+
 
   return (
     <div className="flex flex-col h-screen bg-[#080b12] overflow-hidden">
@@ -151,22 +129,8 @@ export default function Home() {
               <RadarMap
                 events={events}
                 selectedEvent={selectedEvent}
-                onSelectEvent={isDrawing ? undefined : setSelectedEvent}
+                onSelectEvent={setSelectedEvent}
                 correlationGroups={correlationGroups}
-                zones={geofence.zones}
-                isDrawing={geofence.isDrawing}
-                drawPoints={geofence.drawPoints}
-                onAddDrawPoint={geofence.addDrawPoint}
-                onFinishDraw={geofence.finishDraw}
-              />
-              <GeofenceManager
-                zones={geofence.zones}
-                onAdd={() => {}}
-                onDelete={geofence.deleteZone}
-                onToggle={geofence.toggleZone}
-                isDrawing={geofence.isDrawing}
-                onStartDraw={geofence.startDraw}
-                onCancelDraw={geofence.cancelDraw}
               />
             </>
           )}
@@ -224,17 +188,6 @@ export default function Home() {
 
       {/* Prediction engine (invisible) */}
       <PredictiveAlertEngine events={events} onPrediction={addPrediction} />
-
-      {/* Geofence alert toasts */}
-      <div style={{ position: "fixed", bottom: 80, right: 16, zIndex: 9999, display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-end" }}>
-        {geofenceAlerts.map(({ id, event, zoneName }) => (
-          <GeofenceAlertToast
-            key={id}
-            alert={{ event, zoneName }}
-            onClose={() => setGeofenceAlerts((prev) => prev.filter((a) => a.id !== id))}
-          />
-        ))}
-      </div>
     </div>
   );
 }
