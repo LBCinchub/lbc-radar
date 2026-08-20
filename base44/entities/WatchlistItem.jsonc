@@ -1,0 +1,33 @@
+{
+  "name": "WatchlistItem",
+  "type": "object",
+  "properties": {
+    "watchlist_id": {
+      "type": "string",
+      "description": "Reference to the parent Watchlist"
+    },
+    "symbol": {
+      "type": "string",
+      "description": "Asset symbol (e.g., AAPL, XAU, BTC)"
+    },
+    "label": {
+      "type": "string",
+      "description": "Display name of the asset (e.g., Apple, Gold, Bitcoin)"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "stock",
+        "commodity",
+        "crypto"
+      ],
+      "description": "Asset type"
+    }
+  },
+  "required": [
+    "watchlist_id",
+    "symbol",
+    "label",
+    "type"
+  ]
+}

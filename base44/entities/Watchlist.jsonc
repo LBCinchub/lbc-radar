@@ -1,0 +1,22 @@
+{
+  "name": "Watchlist",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Name of the watchlist"
+    },
+    "description": {
+      "type": "string",
+      "description": "Optional description of the watchlist"
+    },
+    "is_default": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this is the default watchlist"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

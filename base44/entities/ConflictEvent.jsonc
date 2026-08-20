@@ -1,0 +1,93 @@
+{
+  "name": "ConflictEvent",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "HIGH",
+        "MEDIUM",
+        "LOW"
+      ]
+    },
+    "region": {
+      "type": "string"
+    },
+    "country": {
+      "type": "string"
+    },
+    "country_code": {
+      "type": "string"
+    },
+    "affected_countries": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of affected countries"
+    },
+    "latitude": {
+      "type": "number"
+    },
+    "longitude": {
+      "type": "number"
+    },
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "airstrike",
+        "missile",
+        "explosion",
+        "clash",
+        "threat",
+        "diplomatic",
+        "cyberattack",
+        "naval",
+        "other"
+      ]
+    },
+    "impact_level": {
+      "type": "string",
+      "enum": [
+        "economic",
+        "military",
+        "political",
+        "humanitarian",
+        "environmental",
+        "infrastructure"
+      ],
+      "description": "Primary impact category of the event"
+    },
+    "confidence": {
+      "type": "number"
+    },
+    "is_escalation": {
+      "type": "boolean"
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "ai_analysis": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "title",
+    "severity"
+  ]
+}

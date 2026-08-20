@@ -1,0 +1,34 @@
+{
+  "name": "SmartDigest",
+  "type": "object",
+  "properties": {
+    "digest_text": {
+      "type": "string"
+    },
+    "period": {
+      "type": "string"
+    },
+    "top_regions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "threat_level": {
+      "type": "string",
+      "enum": [
+        "CRITICAL",
+        "HIGH",
+        "ELEVATED",
+        "MODERATE",
+        "LOW"
+      ]
+    },
+    "event_count": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "digest_text"
+  ]
+}
